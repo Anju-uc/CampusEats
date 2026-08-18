@@ -1,0 +1,24 @@
+{
+  "name": "campuseats-backend",
+  "version": "1.0.0",
+  "description": "CampusEats backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "campuseats",
+    "food-ordering",
+    "canteen"
+  ],
+  "author": "Adhya G V",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "razorpay": "^2.9.8"
+  }
+}
