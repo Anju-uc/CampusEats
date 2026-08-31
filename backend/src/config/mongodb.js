@@ -10,7 +10,9 @@ async function connectMongoDB() {
   }
 
   client = new MongoClient(config.mongodb.uri, {
-    family: 4,
+    tls: true,
+    tlsInsecure: true,
+    serverSelectionTimeoutMS: 10000,
   });
 
   await client.connect();
