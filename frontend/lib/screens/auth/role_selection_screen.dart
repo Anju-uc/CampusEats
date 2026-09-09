@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../student/home_screen.dart';
 import '../kitchen/kitchen_dashboard.dart';
-import '../kitchen/admin_dashboard.dart';
 import 'login_screen.dart';
+import '../../services/api_service.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -12,25 +11,18 @@ class RoleSelectionScreen extends StatelessWidget {
     if (role == "Student" || role == "Teacher") {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => LoginScreen(
-            role: role,
-          ),
-        ),
+        MaterialPageRoute(builder: (context) => LoginScreen(role: role)),
       );
     } else if (role == "Kitchen Staff") {
+      ApiService.startDemoKitchenSession();
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const KitchenDashboard(),
-        ),
+        MaterialPageRoute(builder: (context) => const KitchenDashboard()),
       );
     } else if (role == "Admin") {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const AdminDashboard(),
-        ),
+        MaterialPageRoute(builder: (context) => LoginScreen(role: role)),
       );
     }
   }
@@ -117,10 +109,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "How would you like to continue?",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               ),
 
@@ -185,17 +174,12 @@ class RoleSelectionScreen extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
 
-                  border: Border.all(
-                    color: Colors.orange.withOpacity(0.15),
-                  ),
+                  border: Border.all(color: Colors.orange.withOpacity(0.15)),
                 ),
 
                 child: const Row(
                   children: [
-                    Icon(
-                      Icons.lock_outline_rounded,
-                      color: Colors.orange,
-                    ),
+                    Icon(Icons.lock_outline_rounded, color: Colors.orange),
 
                     SizedBox(width: 12),
 
@@ -219,7 +203,6 @@ class RoleSelectionScreen extends StatelessWidget {
     );
   }
 }
-
 
 // ======================================================
 // ROLE CARD
@@ -257,9 +240,7 @@ class RoleCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
 
-            border: Border.all(
-              color: Colors.grey.shade200,
-            ),
+            border: Border.all(color: Colors.grey.shade200),
 
             boxShadow: [
               BoxShadow(
@@ -281,19 +262,14 @@ class RoleCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(17),
                 ),
 
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 30,
-                ),
+                child: Icon(icon, color: color, size: 30),
               ),
 
               const SizedBox(width: 16),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
                     Text(
@@ -308,10 +284,7 @@ class RoleCard extends StatelessWidget {
 
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                   ],
                 ),

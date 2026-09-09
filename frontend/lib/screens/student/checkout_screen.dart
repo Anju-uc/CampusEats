@@ -26,10 +26,7 @@ class CheckoutScreen extends StatelessWidget {
           children: [
             const Text(
               "Order Summary",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
@@ -42,29 +39,20 @@ class CheckoutScreen extends StatelessWidget {
                   final item = cartProvider.items[index];
 
                   return Card(
-                    margin: const EdgeInsets.only(
-                      bottom: 10,
-                    ),
+                    margin: const EdgeInsets.only(bottom: 10),
 
                     child: ListTile(
                       leading: const CircleAvatar(
                         backgroundColor: Colors.orange,
-                        child: Icon(
-                          Icons.fastfood,
-                          color: Colors.white,
-                        ),
+                        child: Icon(Icons.fastfood, color: Colors.white),
                       ),
 
                       title: Text(
                         item.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
 
-                      subtitle: Text(
-                        "Quantity: ${item.quantity}",
-                      ),
+                      subtitle: Text("Quantity: ${item.quantity}"),
 
                       trailing: Text(
                         "₹${item.totalPrice.toStringAsFixed(0)}",
@@ -85,16 +73,12 @@ class CheckoutScreen extends StatelessWidget {
             const SizedBox(height: 10),
 
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
               children: [
                 const Text(
                   "Total Amount",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
 
                 Text(
@@ -117,13 +101,8 @@ class CheckoutScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   if (cartProvider.items.isEmpty) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Your cart is empty",
-                        ),
-                      ),
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Your cart is empty")),
                     );
 
                     return;
@@ -132,8 +111,7 @@ class CheckoutScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          const PaymentScreen(),
+                      builder: (context) => const PaymentScreen(),
                     ),
                   );
                 },
@@ -145,10 +123,7 @@ class CheckoutScreen extends StatelessWidget {
 
                 child: const Text(
                   "PROCEED TO PAYMENT",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),

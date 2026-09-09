@@ -34,19 +34,14 @@ class CartScreen extends StatelessWidget {
 
                   Text(
                     "Your cart is empty",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
 
                   SizedBox(height: 8),
 
                   Text(
                     "Add some food to continue.",
-                    style: TextStyle(
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
@@ -63,9 +58,7 @@ class CartScreen extends StatelessWidget {
 
                       return Card(
                         elevation: 4,
-                        margin: const EdgeInsets.only(
-                          bottom: 15,
-                        ),
+                        margin: const EdgeInsets.only(bottom: 15),
 
                         child: Padding(
                           padding: const EdgeInsets.all(15),
@@ -87,16 +80,14 @@ class CartScreen extends StatelessWidget {
 
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
 
                                   children: [
                                     Text(
                                       item.name,
                                       style: const TextStyle(
                                         fontSize: 18,
-                                        fontWeight:
-                                            FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
 
@@ -106,8 +97,7 @@ class CartScreen extends StatelessWidget {
                                       "₹${item.price.toStringAsFixed(0)}",
                                       style: const TextStyle(
                                         color: Colors.green,
-                                        fontWeight:
-                                            FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
 
@@ -117,40 +107,28 @@ class CartScreen extends StatelessWidget {
                                       children: [
                                         IconButton(
                                           onPressed: () {
-                                            cartProvider
-                                                .decreaseQuantity(
-                                              item,
-                                            );
+                                            cartProvider.decreaseQuantity(item);
                                           },
 
-                                          icon: const Icon(
-                                            Icons.remove_circle,
-                                          ),
+                                          icon: const Icon(Icons.remove_circle),
 
                                           color: Colors.orange,
                                         ),
 
                                         Text(
                                           "${item.quantity}",
-                                          style:
-                                              const TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 18,
-                                            fontWeight:
-                                                FontWeight.bold,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
 
                                         IconButton(
                                           onPressed: () {
-                                            cartProvider
-                                                .increaseQuantity(
-                                              item,
-                                            );
+                                            cartProvider.increaseQuantity(item);
                                           },
 
-                                          icon: const Icon(
-                                            Icons.add_circle,
-                                          ),
+                                          icon: const Icon(Icons.add_circle),
 
                                           color: Colors.orange,
                                         ),
@@ -167,15 +145,13 @@ class CartScreen extends StatelessWidget {
                                     style: const TextStyle(
                                       fontSize: 17,
                                       color: Colors.green,
-                                      fontWeight:
-                                          FontWeight.bold,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
 
                                   IconButton(
                                     onPressed: () {
-                                      cartProvider
-                                          .removeItem(item);
+                                      cartProvider.removeItem(item);
                                     },
 
                                     icon: const Icon(
@@ -200,18 +176,14 @@ class CartScreen extends StatelessWidget {
                     color: Colors.white,
 
                     boxShadow: [
-                      BoxShadow(
-                        blurRadius: 8,
-                        color: Colors.black12,
-                      ),
+                      BoxShadow(blurRadius: 8, color: Colors.black12),
                     ],
                   ),
 
                   child: Column(
                     children: [
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                         children: [
                           const Text(
@@ -242,12 +214,9 @@ class CartScreen extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: () {
                             if (cartProvider.items.isEmpty) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
+                              ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
-                                    "Your cart is empty",
-                                  ),
+                                  content: Text("Your cart is empty"),
                                 ),
                               );
 
@@ -257,26 +226,21 @@ class CartScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    const CheckoutScreen(),
+                                builder: (context) => const CheckoutScreen(),
                               ),
                             );
                           },
 
-                          style:
-                              ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Colors.orange,
-                            foregroundColor:
-                                Colors.white,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
                           ),
 
                           child: const Text(
                             "PROCEED TO CHECKOUT",
                             style: TextStyle(
                               fontSize: 17,
-                              fontWeight:
-                                  FontWeight.bold,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),

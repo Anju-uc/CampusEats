@@ -22,11 +22,7 @@ class OrderSuccessScreen extends StatelessWidget {
 
             children: [
               // Success Icon
-              const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 100,
-              ),
+              const Icon(Icons.check_circle, color: Colors.green, size: 100),
 
               const SizedBox(height: 25),
 
@@ -34,10 +30,7 @@ class OrderSuccessScreen extends StatelessWidget {
                 "Order Placed Successfully!",
                 textAlign: TextAlign.center,
 
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 15),
@@ -46,10 +39,7 @@ class OrderSuccessScreen extends StatelessWidget {
                 "Your food is being prepared.",
                 textAlign: TextAlign.center,
 
-                style: TextStyle(
-                  fontSize: 17,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 17, color: Colors.grey),
               ),
 
               const SizedBox(height: 35),
@@ -64,22 +54,16 @@ class OrderSuccessScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const OrderTrackingScreen(),
+                        builder: (context) => const OrderTrackingScreen(),
                       ),
                     );
                   },
 
-                  icon: const Icon(
-                    Icons.track_changes,
-                  ),
+                  icon: const Icon(Icons.track_changes),
 
                   label: const Text(
                     "TRACK ORDER",
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                   ),
 
                   style: ElevatedButton.styleFrom(
@@ -98,30 +82,20 @@ class OrderSuccessScreen extends StatelessWidget {
 
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    Navigator.popUntil(
-                      context,
-                      (route) => route.isFirst,
-                    );
+                    Navigator.popUntil(context, (route) => route.isFirst);
                   },
 
-                  icon: const Icon(
-                    Icons.home,
-                  ),
+                  icon: const Icon(Icons.home),
 
                   label: const Text(
                     "BACK TO HOME",
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                   ),
 
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.orange,
 
-                    side: const BorderSide(
-                      color: Colors.orange,
-                    ),
+                    side: const BorderSide(color: Colors.orange),
                   ),
                 ),
               ),

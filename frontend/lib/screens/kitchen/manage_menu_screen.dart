@@ -8,12 +8,10 @@ class ManageMenuScreen extends StatefulWidget {
   const ManageMenuScreen({super.key});
 
   @override
-  State<ManageMenuScreen> createState() =>
-      _ManageMenuScreenState();
+  State<ManageMenuScreen> createState() => _ManageMenuScreenState();
 }
 
-class _ManageMenuScreenState
-    extends State<ManageMenuScreen> {
+class _ManageMenuScreenState extends State<ManageMenuScreen> {
   // Keeps track of which food is currently being updated.
   int? _updatingFoodId;
 
@@ -47,9 +45,7 @@ class _ManageMenuScreenState
     if (food.id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Food ID is missing. Cannot update availability.',
-          ),
+          content: Text('Food ID is missing. Cannot update availability.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -65,8 +61,7 @@ class _ManageMenuScreenState
     final int foodId = food.id!;
 
     // New value.
-    final bool newAvailability =
-        !food.isAvailable;
+    final bool newAvailability = !food.isAvailable;
 
     setState(() {
       _updatingFoodId = foodId;
@@ -77,18 +72,13 @@ class _ManageMenuScreenState
       // CALL PROVIDER
       // ========================================================
 
-      final int index = provider.foods.indexWhere(
-        (item) => item.id == foodId,
-      );
+      final int index = provider.foods.indexWhere((item) => item.id == foodId);
 
       if (index == -1) {
-        throw Exception(
-          'Food item not found.',
-        );
+        throw Exception('Food item not found.');
       }
 
-      final bool success =
-          await provider.toggleAvailability(index);
+      final bool success = await provider.toggleAvailability(index);
 
       if (!mounted) {
         return;
@@ -97,10 +87,7 @@ class _ManageMenuScreenState
       if (!success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              provider.error ??
-                  'Failed to update availability.',
-            ),
+            content: Text(provider.error ?? 'Failed to update availability.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -135,9 +122,7 @@ class _ManageMenuScreenState
       if (updatedFood == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'Food was updated but could not be loaded again.',
-            ),
+            content: Text('Food was updated but could not be loaded again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -152,9 +137,7 @@ class _ManageMenuScreenState
       if (updatedFood.isAvailable != newAvailability) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Backend did not save the availability correctly.',
-            ),
+            content: Text('Backend did not save the availability correctly.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -182,12 +165,7 @@ class _ManageMenuScreenState
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Error: $e',
-          ),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) {
@@ -210,9 +188,7 @@ class _ManageMenuScreenState
     if (food.id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Food ID is missing.',
-          ),
+          content: Text('Food ID is missing.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -220,28 +196,18 @@ class _ManageMenuScreenState
       return;
     }
 
-    final bool? confirmed =
-        await showDialog<bool>(
+    final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text(
-            'Delete Food?',
-          ),
-          content: Text(
-            'Are you sure you want to delete "${food.name}"?',
-          ),
+          title: const Text('Delete Food?'),
+          content: Text('Are you sure you want to delete "${food.name}"?'),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  false,
-                );
+                Navigator.pop(dialogContext, false);
               },
-              child: const Text(
-                'Cancel',
-              ),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -249,14 +215,9 @@ class _ManageMenuScreenState
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                  true,
-                );
+                Navigator.pop(dialogContext, true);
               },
-              child: const Text(
-                'Delete',
-              ),
+              child: const Text('Delete'),
             ),
           ],
         );
@@ -267,16 +228,13 @@ class _ManageMenuScreenState
       return;
     }
 
-    final int index = provider.foods.indexWhere(
-      (item) => item.id == food.id,
-    );
+    final int index = provider.foods.indexWhere((item) => item.id == food.id);
 
     if (index == -1) {
       return;
     }
 
-    final bool success =
-        await provider.deleteFood(index);
+    final bool success = await provider.deleteFood(index);
 
     if (!mounted) {
       return;
@@ -287,11 +245,9 @@ class _ManageMenuScreenState
         content: Text(
           success
               ? '${food.name} deleted successfully.'
-              : provider.error ??
-                  'Failed to delete ${food.name}.',
+              : provider.error ?? 'Failed to delete ${food.name}.',
         ),
-        backgroundColor:
-            success ? Colors.green : Colors.red,
+        backgroundColor: success ? Colors.green : Colors.red,
       ),
     );
   }
@@ -308,9 +264,7 @@ class _ManageMenuScreenState
     if (food.id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Food ID is missing.',
-          ),
+          content: Text('Food ID is missing.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -318,25 +272,13 @@ class _ManageMenuScreenState
       return;
     }
 
-    final nameController =
-        TextEditingController(
-      text: food.name,
-    );
+    final nameController = TextEditingController(text: food.name);
 
-    final priceController =
-        TextEditingController(
-      text: food.price.toString(),
-    );
+    final priceController = TextEditingController(text: food.price.toString());
 
-    final categoryController =
-        TextEditingController(
-      text: food.category,
-    );
+    final categoryController = TextEditingController(text: food.category);
 
-    final descriptionController =
-        TextEditingController(
-      text: food.description,
-    );
+    final descriptionController = TextEditingController(text: food.description);
 
     bool saving = false;
 
@@ -344,96 +286,64 @@ class _ManageMenuScreenState
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (
-            context,
-            setDialogState,
-          ) {
+          builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text(
                 'Edit Food',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
 
-              content:
-                  SingleChildScrollView(
+              content: SingleChildScrollView(
                 child: Column(
-                  mainAxisSize:
-                      MainAxisSize.min,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
-                      controller:
-                          nameController,
+                      controller: nameController,
                       enabled: !saving,
-                      decoration:
-                          const InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Food Name',
-                        prefixIcon:
-                            Icon(Icons.fastfood),
-                        border:
-                            OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.fastfood),
+                        border: OutlineInputBorder(),
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 12,
-                    ),
+                    const SizedBox(height: 12),
 
                     TextField(
-                      controller:
-                          priceController,
+                      controller: priceController,
                       enabled: !saving,
-                      keyboardType:
-                          const TextInputType
-                              .numberWithOptions(
+                      keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration:
-                          const InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Price',
-                        prefixIcon:
-                            Icon(Icons.currency_rupee),
-                        border:
-                            OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.currency_rupee),
+                        border: OutlineInputBorder(),
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 12,
-                    ),
+                    const SizedBox(height: 12),
 
                     TextField(
-                      controller:
-                          categoryController,
+                      controller: categoryController,
                       enabled: !saving,
-                      decoration:
-                          const InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Category',
-                        prefixIcon:
-                            Icon(Icons.category),
-                        border:
-                            OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.category),
+                        border: OutlineInputBorder(),
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 12,
-                    ),
+                    const SizedBox(height: 12),
 
                     TextField(
-                      controller:
-                          descriptionController,
+                      controller: descriptionController,
                       enabled: !saving,
                       maxLines: 3,
-                      decoration:
-                          const InputDecoration(
-                        labelText:
-                            'Description',
-                        prefixIcon:
-                            Icon(Icons.description),
-                        border:
-                            OutlineInputBorder(),
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        prefixIcon: Icon(Icons.description),
+                        border: OutlineInputBorder(),
                       ),
                     ),
                   ],
@@ -445,55 +355,34 @@ class _ManageMenuScreenState
                   onPressed: saving
                       ? null
                       : () {
-                          Navigator.pop(
-                            dialogContext,
-                          );
+                          Navigator.pop(dialogContext);
                         },
-                  child: const Text(
-                    'Cancel',
-                  ),
+                  child: const Text('Cancel'),
                 ),
 
                 ElevatedButton(
-                  style:
-                      ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Colors.orange,
-                    foregroundColor:
-                        Colors.white,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
                   ),
                   onPressed: saving
                       ? null
                       : () async {
-                          final name =
-                              nameController
-                                  .text
-                                  .trim();
+                          final name = nameController.text.trim();
 
-                          final price =
-                              double.tryParse(
-                            priceController
-                                .text
-                                .trim(),
+                          final price = double.tryParse(
+                            priceController.text.trim(),
                           );
 
-                          final category =
-                              categoryController
-                                  .text
-                                  .trim();
+                          final category = categoryController.text.trim();
 
-                          final description =
-                              descriptionController
-                                  .text
-                                  .trim();
+                          final description = descriptionController.text.trim();
 
                           if (name.isEmpty ||
                               price == null ||
                               category.isEmpty ||
                               description.isEmpty) {
-                            ScaffoldMessenger
-                                .of(context)
-                                .showSnackBar(
+                            ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
                                   'Please fill all fields correctly.',
@@ -508,12 +397,8 @@ class _ManageMenuScreenState
                             saving = true;
                           });
 
-                          final index =
-                              provider.foods
-                                  .indexWhere(
-                            (item) =>
-                                item.id ==
-                                food.id,
+                          final index = provider.foods.indexWhere(
+                            (item) => item.id == food.id,
                           );
 
                           if (index == -1) {
@@ -524,13 +409,11 @@ class _ManageMenuScreenState
                             return;
                           }
 
-                          final success =
-                              await provider.updateFood(
+                          final success = await provider.updateFood(
                             index,
                             name: name,
                             price: price,
-                            description:
-                                description,
+                            description: description,
                             category: category,
                           );
 
@@ -539,40 +422,28 @@ class _ManageMenuScreenState
                           }
 
                           if (success) {
-                            Navigator.pop(
-                              dialogContext,
-                            );
+                            Navigator.pop(dialogContext);
 
-                            ScaffoldMessenger
-                                .of(context)
-                                .showSnackBar(
+                            ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text(
-                                  'Food updated successfully.',
-                                ),
-                                backgroundColor:
-                                    Colors.green,
+                                content: Text('Food updated successfully.'),
+                                backgroundColor: Colors.green,
                               ),
                             );
 
                             // Reload from backend.
-                            await provider
-                                .loadMenu();
+                            await provider.loadMenu();
                           } else {
                             setDialogState(() {
                               saving = false;
                             });
 
-                            ScaffoldMessenger
-                                .of(context)
-                                .showSnackBar(
+                            ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  provider.error ??
-                                      'Failed to update food.',
+                                  provider.error ?? 'Failed to update food.',
                                 ),
-                                backgroundColor:
-                                    Colors.red,
+                                backgroundColor: Colors.red,
                               ),
                             );
                           }
@@ -581,15 +452,12 @@ class _ManageMenuScreenState
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child:
-                              CircularProgressIndicator(
+                          child: CircularProgressIndicator(
                             strokeWidth: 2,
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          'Save',
-                        ),
+                      : const Text('Save'),
                 ),
               ],
             );
@@ -611,51 +479,32 @@ class _ManageMenuScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFFFF9F4),
+      backgroundColor: const Color(0xFFFFF9F4),
 
       appBar: AppBar(
-        backgroundColor:
-            Colors.orange,
-        foregroundColor:
-            Colors.white,
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
         elevation: 0,
 
         title: const Text(
           'Manage Menu',
-          style: TextStyle(
-            fontWeight:
-                FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
 
         actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.refresh,
-            ),
-            onPressed: _refreshMenu,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshMenu),
         ],
       ),
 
       body: Consumer<MenuProvider>(
-        builder: (
-          context,
-          provider,
-          child,
-        ) {
+        builder: (context, provider, child) {
           // ======================================================
           // LOADING
           // ======================================================
 
-          if (provider.isLoading &&
-              provider.foods.isEmpty) {
+          if (provider.isLoading && provider.foods.isEmpty) {
             return const Center(
-              child:
-                  CircularProgressIndicator(
-                color: Colors.orange,
-              ),
+              child: CircularProgressIndicator(color: Colors.orange),
             );
           }
 
@@ -663,15 +512,12 @@ class _ManageMenuScreenState
           // ERROR
           // ======================================================
 
-          if (provider.error != null &&
-              provider.foods.isEmpty) {
+          if (provider.error != null && provider.foods.isEmpty) {
             return Center(
               child: Padding(
-                padding:
-                    const EdgeInsets.all(30),
+                padding: const EdgeInsets.all(30),
                 child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.error_outline,
@@ -679,48 +525,29 @@ class _ManageMenuScreenState
                       color: Colors.red,
                     ),
 
-                    const SizedBox(
-                      height: 15,
-                    ),
+                    const SizedBox(height: 15),
 
                     const Text(
                       'Failed to load menu',
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10),
 
-                    Text(
-                      provider.error!,
-                      textAlign:
-                          TextAlign.center,
-                    ),
+                    Text(provider.error!, textAlign: TextAlign.center),
 
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
 
                     ElevatedButton.icon(
-                      onPressed:
-                          provider.loadMenu,
-                      icon: const Icon(
-                        Icons.refresh,
-                      ),
-                      label: const Text(
-                        'Retry',
-                      ),
-                      style:
-                          ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.orange,
-                        foregroundColor:
-                            Colors.white,
+                      onPressed: provider.loadMenu,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
                       ),
                     ),
                   ],
@@ -733,18 +560,13 @@ class _ManageMenuScreenState
           // FOOD LIST
           // ======================================================
 
-          final foods =
-              provider.foods;
+          final foods = provider.foods;
 
           if (foods.isEmpty) {
             return const Center(
               child: Text(
                 'No Food Items Yet',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight:
-                      FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
             );
           }
@@ -754,22 +576,14 @@ class _ManageMenuScreenState
             onRefresh: _refreshMenu,
 
             child: ListView.builder(
-              padding:
-                  const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
 
-              itemCount:
-                  foods.length,
+              itemCount: foods.length,
 
-              itemBuilder:
-                  (context, index) {
-                final food =
-                    foods[index];
+              itemBuilder: (context, index) {
+                final food = foods[index];
 
-                return _foodCard(
-                  context,
-                  provider,
-                  food,
-                );
+                return _foodCard(context, provider, food);
               },
             ),
           );
@@ -787,210 +601,136 @@ class _ManageMenuScreenState
     MenuProvider provider,
     FoodModel food,
   ) {
-    final bool isUpdating =
-        _updatingFoodId == food.id;
+    final bool isUpdating = _updatingFoodId == food.id;
 
     return Card(
-      margin:
-          const EdgeInsets.only(
-        bottom: 14,
-      ),
+      margin: const EdgeInsets.only(bottom: 14),
 
       elevation: 3,
 
-      shape:
-          RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(
-          18,
-        ),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
 
       child: Padding(
-        padding:
-            const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(14),
 
         child: Column(
           children: [
             Row(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 // ==================================================
                 // IMAGE
                 // ==================================================
-
                 Container(
                   height: 65,
                   width: 65,
 
-                  decoration:
-                      BoxDecoration(
-                    color:
-                        Colors.orange
-                            .withValues(
-                      alpha: 0.12,
-                    ),
-                    borderRadius:
-                        BorderRadius.circular(
-                      15,
-                    ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(15),
                   ),
 
-                  child:
-                      food.imagePath.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                15,
-                              ),
+                  child: food.imagePath.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
 
-                              child:
-                                  Image.asset(
-                                food.imagePath,
-                                fit:
-                                    BoxFit.cover,
+                          child: Image.asset(
+                            food.imagePath,
+                            fit: BoxFit.cover,
 
-                                errorBuilder:
-                                    (
-                                  context,
-                                  error,
-                                  stackTrace,
-                                ) {
-                                  return const Icon(
-                                    Icons.fastfood,
-                                    color:
-                                        Colors.orange,
-                                    size: 32,
-                                  );
-                                },
-                              ),
-                            )
-                          : const Icon(
-                              Icons.fastfood,
-                              color:
-                                  Colors.orange,
-                              size: 32,
-                            ),
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.fastfood,
+                                color: Colors.orange,
+                                size: 32,
+                              );
+                            },
+                          ),
+                        )
+                      : const Icon(
+                          Icons.fastfood,
+                          color: Colors.orange,
+                          size: 32,
+                        ),
                 ),
 
-                const SizedBox(
-                  width: 14,
-                ),
+                const SizedBox(width: 14),
 
                 // ==================================================
                 // FOOD DETAILS
                 // ==================================================
-
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
 
                     children: [
                       Text(
                         food.name,
-                        style:
-                            const TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
 
-                      const SizedBox(
-                        height: 5,
-                      ),
+                      const SizedBox(height: 5),
 
                       Text(
                         '₹${food.price.toStringAsFixed(0)}',
-                        style:
-                            const TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
-                          fontWeight:
-                              FontWeight.bold,
-                          color:
-                              Colors.green,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
                         ),
                       ),
 
-                      const SizedBox(
-                        height: 4,
-                      ),
+                      const SizedBox(height: 4),
 
                       Text(
                         food.category,
                         style: TextStyle(
-                          color:
-                              Colors.grey.shade600,
+                          color: Colors.grey.shade600,
                           fontSize: 13,
                         ),
                       ),
 
-                      const SizedBox(
-                        height: 5,
-                      ),
+                      const SizedBox(height: 5),
 
                       Text(
                         food.description,
                         maxLines: 2,
-                        overflow:
-                            TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color:
-                              Colors.grey.shade700,
-                        ),
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey.shade700),
                       ),
 
-                      const SizedBox(
-                        height: 8,
-                      ),
+                      const SizedBox(height: 8),
 
                       // ==================================================
                       // STATUS
                       // ==================================================
-
                       Container(
-                        padding:
-                            const EdgeInsets
-                                .symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 5,
                         ),
 
-                        decoration:
-                            BoxDecoration(
-                          color:
-                              food.isAvailable
-                                  ? Colors.green
-                                      .shade50
-                                  : Colors.red
-                                      .shade50,
+                        decoration: BoxDecoration(
+                          color: food.isAvailable
+                              ? Colors.green.shade50
+                              : Colors.red.shade50,
 
-                          borderRadius:
-                              BorderRadius
-                                  .circular(
-                            8,
-                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
 
                         child: Text(
-                          food.isAvailable
-                              ? 'AVAILABLE'
-                              : 'UNAVAILABLE',
+                          food.isAvailable ? 'AVAILABLE' : 'UNAVAILABLE',
 
                           style: TextStyle(
-                            color:
-                                food.isAvailable
-                                    ? Colors.green
-                                    : Colors.red,
+                            color: food.isAvailable ? Colors.green : Colors.red,
 
                             fontSize: 11,
 
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -1001,117 +741,75 @@ class _ManageMenuScreenState
                 // ==================================================
                 // DELETE
                 // ==================================================
-
                 IconButton(
-                  icon:
-                      const Icon(
-                    Icons.delete_outline,
-                    color: Colors.red,
-                  ),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
 
-                  onPressed:
-                      isUpdating
-                          ? null
-                          : () {
-                              _deleteFood(
-                                context,
-                                provider,
-                                food,
-                              );
-                            },
+                  onPressed: isUpdating
+                      ? null
+                      : () {
+                          _deleteFood(context, provider, food);
+                        },
                 ),
               ],
             ),
 
-            const SizedBox(
-              height: 12,
-            ),
+            const SizedBox(height: 12),
 
             // ======================================================
             // EDIT + AVAILABILITY
             // ======================================================
-
             Row(
               children: [
                 // ==================================================
                 // EDIT
                 // ==================================================
-
                 Expanded(
-                  child:
-                      OutlinedButton.icon(
-                    onPressed:
-                        isUpdating
-                            ? null
-                            : () {
-                                _editFood(
-                                  context,
-                                  provider,
-                                  food,
-                                );
-                              },
+                  child: OutlinedButton.icon(
+                    onPressed: isUpdating
+                        ? null
+                        : () {
+                            _editFood(context, provider, food);
+                          },
 
-                    icon:
-                        const Icon(
-                      Icons.edit,
-                      size: 18,
-                    ),
+                    icon: const Icon(Icons.edit, size: 18),
 
-                    label:
-                        const Text(
-                      'Edit',
-                    ),
+                    label: const Text('Edit'),
                   ),
                 ),
 
-                const SizedBox(
-                  width: 10,
-                ),
+                const SizedBox(width: 10),
 
                 // ==================================================
                 // AVAILABILITY
                 // ==================================================
-
                 Expanded(
-                  child:
-                      ElevatedButton.icon(
-                    onPressed:
-                        isUpdating
-                            ? null
-                            : () {
-                                _toggleAvailability(
-                                  context,
-                                  provider,
-                                  food,
-                                );
-                              },
+                  child: ElevatedButton.icon(
+                    onPressed: isUpdating
+                        ? null
+                        : () {
+                            _toggleAvailability(context, provider, food);
+                          },
 
-                    style:
-                        ElevatedButton.styleFrom(
-                      backgroundColor:
-                          food.isAvailable
-                              ? Colors.green
-                              : Colors.red,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: food.isAvailable
+                          ? Colors.green
+                          : Colors.red,
 
-                      foregroundColor:
-                          Colors.white,
+                      foregroundColor: Colors.white,
                     ),
 
                     icon: isUpdating
                         ? const SizedBox(
                             height: 18,
                             width: 18,
-                            child:
-                                CircularProgressIndicator(
+                            child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color:
-                                  Colors.white,
+                              color: Colors.white,
                             ),
                           )
                         : Icon(
                             food.isAvailable
-                                ? Icons
-                                    .check_circle
+                                ? Icons.check_circle
                                 : Icons.cancel,
                             size: 18,
                           ),
@@ -1120,8 +818,8 @@ class _ManageMenuScreenState
                       isUpdating
                           ? 'Updating...'
                           : food.isAvailable
-                              ? 'Available'
-                              : 'Unavailable',
+                          ? 'Available'
+                          : 'Unavailable',
                     ),
                   ),
                 ),

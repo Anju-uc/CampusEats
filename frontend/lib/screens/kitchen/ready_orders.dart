@@ -18,8 +18,7 @@ class ReadyOrders extends StatelessWidget {
 
       body: Consumer<OrderProvider>(
         builder: (context, orderProvider, child) {
-          final orders =
-              orderProvider.getOrdersByStatus('Ready');
+          final orders = orderProvider.getOrdersByStatus('Ready');
 
           // ======================================================
           // NO ORDERS
@@ -28,23 +27,15 @@ class ReadyOrders extends StatelessWidget {
           if (orders.isEmpty) {
             return const Center(
               child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: 80,
-                    color: Colors.green,
-                  ),
+                  Icon(Icons.check_circle, size: 80, color: Colors.green),
 
                   SizedBox(height: 15),
 
                   Text(
                     'No orders waiting for pickup',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -61,75 +52,58 @@ class ReadyOrders extends StatelessWidget {
             itemCount: orders.length,
 
             itemBuilder: (context, index) {
-              final OrderModel order = orders[index];
+              final order = OrderModel.fromMap(orders[index]);
 
-              final actualIndex =
-                  orderProvider.orders.indexOf(order);
+              final actualIndex = orderProvider.orders.indexOf(orders[index]);
 
               return Card(
                 elevation: 4,
 
-                margin: const EdgeInsets.only(
-                  bottom: 15,
-                ),
+                margin: const EdgeInsets.only(bottom: 15),
 
                 child: Padding(
                   padding: const EdgeInsets.all(16),
 
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
 
                     children: [
                       // ==================================================
                       // FOOD + STATUS
                       // ==================================================
-
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                         children: [
                           Expanded(
                             child: Text(
                               order.foodName,
 
-                              style:
-                                  const TextStyle(
+                              style: const TextStyle(
                                 fontSize: 20,
-                                fontWeight:
-                                    FontWeight.bold,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
 
                           Container(
-                            padding:
-                                const EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 10,
                               vertical: 6,
                             ),
 
-                            decoration:
-                                BoxDecoration(
-                              color:
-                                  Colors.blue.shade100,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade100,
 
-                              borderRadius:
-                                  BorderRadius.circular(
-                                20,
-                              ),
+                              borderRadius: BorderRadius.circular(20),
                             ),
 
                             child: const Text(
                               'Ready',
 
-                              style:
-                                  TextStyle(
-                                color:
-                                    Colors.blue,
-                                fontWeight:
-                                    FontWeight.bold,
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -141,7 +115,6 @@ class ReadyOrders extends StatelessWidget {
                       // ==================================================
                       // DATE
                       // ==================================================
-
                       Row(
                         children: [
                           const Icon(
@@ -155,10 +128,7 @@ class ReadyOrders extends StatelessWidget {
                           Text(
                             order.date,
 
-                            style:
-                                const TextStyle(
-                              color: Colors.grey,
-                            ),
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ],
                       ),
@@ -168,16 +138,13 @@ class ReadyOrders extends StatelessWidget {
                       // ==================================================
                       // TOTAL
                       // ==================================================
-
                       Text(
                         '₹${order.total.toStringAsFixed(0)}',
 
-                        style:
-                            const TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           color: Colors.green,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
 
@@ -186,7 +153,6 @@ class ReadyOrders extends StatelessWidget {
                       // ==================================================
                       // COLLECTED
                       // ==================================================
-
                       SizedBox(
                         width: double.infinity,
 
@@ -196,9 +162,7 @@ class ReadyOrders extends StatelessWidget {
                               return;
                             }
 
-                            final success =
-                                await orderProvider
-                                    .markCollected(
+                            final success = await orderProvider.markCollected(
                               actualIndex,
                             );
 
@@ -206,9 +170,7 @@ class ReadyOrders extends StatelessWidget {
                               return;
                             }
 
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(
+                            ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
                                   success
@@ -216,34 +178,23 @@ class ReadyOrders extends StatelessWidget {
                                       : 'Failed to update order.',
                                 ),
 
-                                backgroundColor:
-                                    success
-                                        ? Colors.green
-                                        : Colors.red,
+                                backgroundColor: success
+                                    ? Colors.green
+                                    : Colors.red,
                               ),
                             );
                           },
 
-                          icon: const Icon(
-                            Icons.check_circle,
-                          ),
+                          icon: const Icon(Icons.check_circle),
 
-                          label: const Text(
-                            'COLLECTED',
-                          ),
+                          label: const Text('COLLECTED'),
 
-                          style:
-                              ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Colors.green,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
 
-                            foregroundColor:
-                                Colors.white,
+                            foregroundColor: Colors.white,
 
-                            padding:
-                                const EdgeInsets.symmetric(
-                              vertical: 13,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
                           ),
                         ),
                       ),

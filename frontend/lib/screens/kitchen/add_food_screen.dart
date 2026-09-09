@@ -17,14 +17,11 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   // CONTROLLERS
   // ============================================================
 
-  final TextEditingController nameController =
-      TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
-  final TextEditingController priceController =
-      TextEditingController();
+  final TextEditingController priceController = TextEditingController();
 
-  final TextEditingController descriptionController =
-      TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
 
   // ============================================================
   // IMAGE PICKER
@@ -64,9 +61,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   // ============================================================
 
   Future<void> selectFoodImage() async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
       setState(() {
@@ -98,9 +93,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
       return;
     }
 
-    final double? price = double.tryParse(
-      priceController.text.trim(),
-    );
+    final double? price = double.tryParse(priceController.text.trim());
 
     if (price == null) {
       showMessage("Please enter a valid price");
@@ -161,28 +154,21 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
       if (result["success"] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              "${food["name"]} added successfully!",
-            ),
+            content: Text("${food["name"]} added successfully!"),
             backgroundColor: Colors.green,
           ),
         );
 
         clearForm();
       } else {
-        showMessage(
-          result["message"] ??
-              "Failed to add food",
-        );
+        showMessage(result["message"] ?? "Failed to add food");
       }
     } catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            "Failed to add food: $e",
-          ),
+          content: Text("Failed to add food: $e"),
           backgroundColor: Colors.red,
         ),
       );
@@ -219,11 +205,9 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   // ============================================================
 
   void showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   // ============================================================
@@ -234,9 +218,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Add New Food",
-        ),
+        title: const Text("Add New Food"),
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
       ),
@@ -251,7 +233,6 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // FOOD IMAGE
             // ==================================================
-
             Center(
               child: selectedImagePath.isEmpty
                   ? const CircleAvatar(
@@ -265,8 +246,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
                       ),
                     )
                   : ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(20),
 
                       child: Image.file(
                         File(selectedImagePath),
@@ -284,31 +264,21 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // IMAGE BUTTON
             // ==================================================
-
             Center(
               child: ElevatedButton.icon(
-                onPressed: isSaving
-                    ? null
-                    : selectFoodImage,
+                onPressed: isSaving ? null : selectFoodImage,
 
-                icon: const Icon(
-                  Icons.photo_library,
-                  color: Colors.white,
-                ),
+                icon: const Icon(Icons.photo_library, color: Colors.white),
 
                 label: Text(
                   selectedImagePath.isEmpty
                       ? "Select Food Image"
                       : "Change Food Image",
 
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
+                  style: const TextStyle(color: Colors.white),
                 ),
 
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
               ),
             ),
 
@@ -317,14 +287,10 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // IMAGE OPTIONAL MESSAGE
             // ==================================================
-
             const Center(
               child: Text(
                 "Food image is optional",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 13),
               ),
             ),
 
@@ -333,21 +299,17 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // FOOD NAME
             // ==================================================
-
             TextField(
               controller: nameController,
               enabled: !isSaving,
 
               decoration: const InputDecoration(
                 labelText: "Food Name",
-                hintText:
-                    "Example: Chicken Biryani",
+                hintText: "Example: Chicken Biryani",
 
                 border: OutlineInputBorder(),
 
-                prefixIcon: Icon(
-                  Icons.fastfood,
-                ),
+                prefixIcon: Icon(Icons.fastfood),
               ),
             ),
 
@@ -356,13 +318,11 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // PRICE
             // ==================================================
-
             TextField(
               controller: priceController,
               enabled: !isSaving,
 
-              keyboardType:
-                  const TextInputType.numberWithOptions(
+              keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
 
@@ -372,9 +332,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
 
                 border: OutlineInputBorder(),
 
-                prefixIcon: Icon(
-                  Icons.currency_rupee,
-                ),
+                prefixIcon: Icon(Icons.currency_rupee),
               ),
             ),
 
@@ -383,10 +341,8 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // DESCRIPTION
             // ==================================================
-
             TextField(
-              controller:
-                  descriptionController,
+              controller: descriptionController,
 
               enabled: !isSaving,
 
@@ -394,14 +350,11 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
 
               decoration: const InputDecoration(
                 labelText: "Description",
-                hintText:
-                    "Enter food description",
+                hintText: "Enter food description",
 
                 border: OutlineInputBorder(),
 
-                prefixIcon: Icon(
-                  Icons.description,
-                ),
+                prefixIcon: Icon(Icons.description),
               ),
             ),
 
@@ -410,59 +363,35 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // CATEGORY
             // ==================================================
-
             DropdownButtonFormField<String>(
-              initialValue:
-                  selectedCategory,
+              initialValue: selectedCategory,
 
-              decoration:
-                  const InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Category",
 
-                border:
-                    OutlineInputBorder(),
+                border: OutlineInputBorder(),
 
-                prefixIcon: Icon(
-                  Icons.category,
-                ),
+                prefixIcon: Icon(Icons.category),
               ),
 
               items: const [
                 DropdownMenuItem(
                   value: "South Indian",
-                  child:
-                      Text("South Indian"),
+                  child: Text("South Indian"),
                 ),
 
                 DropdownMenuItem(
                   value: "North Indian",
-                  child:
-                      Text("North Indian"),
+                  child: Text("North Indian"),
                 ),
 
-                DropdownMenuItem(
-                  value: "Chinese",
-                  child:
-                      Text("Chinese"),
-                ),
+                DropdownMenuItem(value: "Chinese", child: Text("Chinese")),
 
-                DropdownMenuItem(
-                  value: "Non Veg",
-                  child:
-                      Text("Non Veg"),
-                ),
+                DropdownMenuItem(value: "Non Veg", child: Text("Non Veg")),
 
-                DropdownMenuItem(
-                  value: "Fast Food",
-                  child:
-                      Text("Fast Food"),
-                ),
+                DropdownMenuItem(value: "Fast Food", child: Text("Fast Food")),
 
-                DropdownMenuItem(
-                  value: "Beverages",
-                  child:
-                      Text("Beverages"),
-                ),
+                DropdownMenuItem(value: "Beverages", child: Text("Beverages")),
               ],
 
               onChanged: isSaving
@@ -470,8 +399,7 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
                   : (value) {
                       if (value != null) {
                         setState(() {
-                          selectedCategory =
-                              value;
+                          selectedCategory = value;
                         });
                       }
                     },
@@ -482,55 +410,40 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // SAVE FOOD BUTTON
             // ==================================================
-
             SizedBox(
               width: double.infinity,
               height: 55,
 
               child: ElevatedButton.icon(
-                onPressed:
-                    isSaving
-                        ? null
-                        : saveFood,
+                onPressed: isSaving ? null : saveFood,
 
                 icon: isSaving
                     ? const SizedBox(
                         width: 22,
                         height: 22,
 
-                        child:
-                            CircularProgressIndicator(
+                        child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(
-                        Icons.save,
-                        color: Colors.white,
-                      ),
+                    : const Icon(Icons.save, color: Colors.white),
 
                 label: Text(
-                  isSaving
-                      ? "ADDING FOOD..."
-                      : "SAVE FOOD",
+                  isSaving ? "ADDING FOOD..." : "SAVE FOOD",
 
                   style: const TextStyle(
                     fontSize: 18,
                     color: Colors.white,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Colors.orange,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
 
-                  shape:
-                      RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -541,39 +454,24 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
             // ==================================================
             // CLEAR BUTTON
             // ==================================================
-
             SizedBox(
               width: double.infinity,
               height: 50,
 
               child: OutlinedButton.icon(
-                onPressed:
-                    isSaving
-                        ? null
-                        : clearForm,
+                onPressed: isSaving ? null : clearForm,
 
-                icon: const Icon(
-                  Icons.clear,
-                ),
+                icon: const Icon(Icons.clear),
 
-                label: const Text(
-                  "CLEAR",
-                ),
+                label: const Text("CLEAR"),
 
-                style:
-                    OutlinedButton.styleFrom(
-                  foregroundColor:
-                      Colors.orange,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.orange,
 
-                  side:
-                      const BorderSide(
-                    color: Colors.orange,
-                  ),
+                  side: const BorderSide(color: Colors.orange),
 
-                  shape:
-                      RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),

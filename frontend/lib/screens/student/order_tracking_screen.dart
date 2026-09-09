@@ -5,10 +5,7 @@ import '../../providers/order_provider.dart';
 import '../../models/order_model.dart';
 
 class OrderTrackingScreen extends StatelessWidget {
-  const OrderTrackingScreen({
-    super.key,
-    this.order,
-  });
+  const OrderTrackingScreen({super.key, this.order});
 
   final OrderModel? order;
 
@@ -19,7 +16,7 @@ class OrderTrackingScreen extends StatelessWidget {
     final currentOrder =
         order ??
         (orderProvider.orders.isNotEmpty
-            ? orderProvider.orders.last
+            ? OrderModel.fromMap(orderProvider.orders.last)
             : null);
 
     if (currentOrder == null) {
@@ -56,18 +53,13 @@ class OrderTrackingScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 const Text(
                   "No active order",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   "Place an order to track your food here.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -81,16 +73,11 @@ class OrderTrackingScreen extends StatelessWidget {
     final isConfirmed = true;
 
     final isPreparing =
-        status == "Preparing" ||
-        status == "Ready" ||
-        status == "Completed";
+        status == "Preparing" || status == "Ready" || status == "Completed";
 
-    final isReady =
-        status == "Ready" ||
-        status == "Completed";
+    final isReady = status == "Ready" || status == "Completed";
 
-    final isCompleted =
-        status == "Completed";
+    final isCompleted = status == "Completed";
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F2),
@@ -102,9 +89,7 @@ class OrderTrackingScreen extends StatelessWidget {
 
         title: const Text(
           "Track Your Order",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
 
         actions: [
@@ -115,10 +100,7 @@ class OrderTrackingScreen extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      OrderTrackingScreen(
-                    order: currentOrder,
-                  ),
+                  builder: (_) => OrderTrackingScreen(order: currentOrder),
                 ),
               );
             },
@@ -134,25 +116,19 @@ class OrderTrackingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ==================================================
             // CURRENT STATUS BANNER
             // ==================================================
-
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
 
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFFFF9800),
-                    Color(0xFFFF6D00),
-                  ],
+                  colors: [Color(0xFFFF9800), Color(0xFFFF6D00)],
                 ),
 
-                borderRadius:
-                    BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(24),
               ),
 
               child: Row(
@@ -162,8 +138,7 @@ class OrderTrackingScreen extends StatelessWidget {
                     width: 58,
 
                     decoration: BoxDecoration(
-                      color: Colors.white
-                          .withOpacity(0.18),
+                      color: Colors.white.withOpacity(0.18),
                       shape: BoxShape.circle,
                     ),
 
@@ -171,8 +146,8 @@ class OrderTrackingScreen extends StatelessWidget {
                       status == "Completed"
                           ? Icons.check_circle
                           : status == "Ready"
-                              ? Icons.notifications_active
-                              : Icons.restaurant,
+                          ? Icons.notifications_active
+                          : Icons.restaurant,
                       color: Colors.white,
                       size: 30,
                     ),
@@ -182,16 +157,12 @@ class OrderTrackingScreen extends StatelessWidget {
 
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
 
                       children: [
                         const Text(
                           "Order Status",
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
                         ),
 
                         const SizedBox(height: 4),
@@ -200,17 +171,15 @@ class OrderTrackingScreen extends StatelessWidget {
                           status == "Preparing"
                               ? "Your food is being prepared 🍳"
                               : status == "Ready"
-                                  ? "Ready for pickup! 🎉"
-                                  : status ==
-                                          "Completed"
-                                      ? "Order completed! ❤️"
-                                      : "Order confirmed! 🎉",
+                              ? "Ready for pickup! 🎉"
+                              : status == "Completed"
+                              ? "Order completed! ❤️"
+                              : "Order confirmed! 🎉",
 
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 17,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
@@ -225,29 +194,24 @@ class OrderTrackingScreen extends StatelessWidget {
             // ==================================================
             // ORDER DETAILS
             // ==================================================
-
             Container(
               padding: const EdgeInsets.all(18),
 
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20),
 
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black
-                        .withOpacity(0.05),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 12,
-                    offset:
-                        const Offset(0, 5),
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
 
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   Row(
@@ -256,42 +220,29 @@ class OrderTrackingScreen extends StatelessWidget {
                         "Your Order",
                         style: TextStyle(
                           fontSize: 19,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
 
                       const Spacer(),
 
                       Container(
-                        padding:
-                            const EdgeInsets
-                                .symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 6,
                         ),
 
-                        decoration:
-                            BoxDecoration(
-                          color: Colors.orange
-                              .shade50,
-                          borderRadius:
-                              BorderRadius
-                                  .circular(
-                            20,
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(20),
                         ),
 
                         child: Text(
                           "CampusEats",
-                          style:
-                              TextStyle(
-                            color:
-                                Colors.orange
-                                    .shade800,
+                          style: TextStyle(
+                            color: Colors.orange.shade800,
                             fontSize: 10,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -301,22 +252,11 @@ class OrderTrackingScreen extends StatelessWidget {
                   const SizedBox(height: 15),
 
                   Container(
-                    padding:
-                        const EdgeInsets.all(
-                      14,
-                    ),
+                    padding: const EdgeInsets.all(14),
 
-                    decoration:
-                        BoxDecoration(
-                      color:
-                          const Color(
-                        0xFFFFF8F2,
-                      ),
-                      borderRadius:
-                          BorderRadius
-                              .circular(
-                        15,
-                      ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF8F2),
+                      borderRadius: BorderRadius.circular(15),
                     ),
 
                     child: Row(
@@ -325,42 +265,26 @@ class OrderTrackingScreen extends StatelessWidget {
                           height: 48,
                           width: 48,
 
-                          decoration:
-                              BoxDecoration(
-                            color: Colors
-                                .orange
-                                .shade100,
-                            borderRadius:
-                                BorderRadius
-                                    .circular(
-                              13,
-                            ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(13),
                           ),
 
-                          child:
-                              const Icon(
+                          child: const Icon(
                             Icons.restaurant,
-                            color:
-                                Colors.orange,
+                            color: Colors.orange,
                           ),
                         ),
 
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
 
                         Expanded(
-                          child:
-                              Text(
-                            currentOrder
-                                .foodName,
+                          child: Text(
+                            currentOrder.foodName,
 
-                            style:
-                                const TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
-                              fontWeight:
-                                  FontWeight
-                                      .bold,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -392,105 +316,67 @@ class OrderTrackingScreen extends StatelessWidget {
             // ==================================================
             // TRACKING
             // ==================================================
-
             const Text(
               "Live Order Tracking",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 18),
 
             Container(
-              padding:
-                  const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
 
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(22),
 
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black
-                        .withOpacity(0.05),
+                    color: Colors.black.withOpacity(0.05),
                     blurRadius: 12,
-                    offset:
-                        const Offset(0, 5),
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
 
               child: Column(
                 children: [
+                  trackingStep(
+                    icon: Icons.check_circle,
+                    title: "Order Confirmed",
+                    subtitle: "Your order has been received.",
+                    active: isConfirmed,
+                    color: Colors.green,
+                  ),
+
+                  trackingLine(active: isPreparing),
 
                   trackingStep(
-                    icon:
-                        Icons.check_circle,
-                    title:
-                        "Order Confirmed",
-                    subtitle:
-                        "Your order has been received.",
-                    active:
-                        isConfirmed,
-                    color:
-                        Colors.green,
+                    icon: Icons.restaurant,
+                    title: "Preparing Food",
+                    subtitle: "Kitchen staff are preparing your food.",
+                    active: isPreparing,
+                    color: Colors.orange,
                   ),
 
-                  trackingLine(
-                    active:
-                        isPreparing,
-                  ),
+                  trackingLine(active: isReady),
 
                   trackingStep(
-                    icon:
-                        Icons.restaurant,
-                    title:
-                        "Preparing Food",
-                    subtitle:
-                        "Kitchen staff are preparing your food.",
-                    active:
-                        isPreparing,
-                    color:
-                        Colors.orange,
+                    icon: Icons.notifications_active,
+                    title: "Ready for Pickup",
+                    subtitle: "Your food is ready at the cafeteria.",
+                    active: isReady,
+                    color: Colors.blue,
                   ),
 
-                  trackingLine(
-                    active:
-                        isReady,
-                  ),
+                  trackingLine(active: isCompleted),
 
                   trackingStep(
-                    icon:
-                        Icons.notifications_active,
-                    title:
-                        "Ready for Pickup",
-                    subtitle:
-                        "Your food is ready at the cafeteria.",
-                    active:
-                        isReady,
-                    color:
-                        Colors.blue,
-                  ),
-
-                  trackingLine(
-                    active:
-                        isCompleted,
-                  ),
-
-                  trackingStep(
-                    icon:
-                        Icons.check_circle,
-                    title:
-                        "Order Collected",
-                    subtitle:
-                        "Enjoy your meal! ❤️",
-                    active:
-                        isCompleted,
-                    color:
-                        Colors.green,
+                    icon: Icons.check_circle,
+                    title: "Order Collected",
+                    subtitle: "Enjoy your meal! ❤️",
+                    active: isCompleted,
+                    color: Colors.green,
                   ),
                 ],
               ),
@@ -501,23 +387,14 @@ class OrderTrackingScreen extends StatelessWidget {
             // ==================================================
             // CURRENT STATUS MESSAGE
             // ==================================================
-
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(18),
 
               decoration: BoxDecoration(
-                color:
-                    Colors.orange.shade50,
-                borderRadius:
-                    BorderRadius.circular(
-                  18,
-                ),
-                border: Border.all(
-                  color:
-                      Colors.orange.shade200,
-                ),
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.orange.shade200),
               ),
 
               child: Row(
@@ -526,33 +403,22 @@ class OrderTrackingScreen extends StatelessWidget {
                     height: 42,
                     width: 42,
 
-                    decoration:
-                        BoxDecoration(
-                      color:
-                          Colors.white,
-                      shape:
-                          BoxShape.circle,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
                     ),
 
-                    child: const Icon(
-                      Icons.info_outline,
-                      color:
-                          Colors.orange,
-                    ),
+                    child: const Icon(Icons.info_outline, color: Colors.orange),
                   ),
 
                   const SizedBox(width: 12),
 
                   Expanded(
                     child: Text(
-                      getStatusMessage(
-                        status,
-                      ),
-                      style:
-                          const TextStyle(
+                      getStatusMessage(status),
+                      style: const TextStyle(
                         fontSize: 13,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                         height: 1.4,
                       ),
                     ),
@@ -566,16 +432,11 @@ class OrderTrackingScreen extends StatelessWidget {
             // ==================================================
             // HELP
             // ==================================================
-
             Center(
               child: TextButton.icon(
                 onPressed: () {},
-                icon: const Icon(
-                  Icons.support_agent,
-                ),
-                label: const Text(
-                  "Need help with your order?",
-                ),
+                icon: const Icon(Icons.support_agent),
+                label: const Text("Need help with your order?"),
               ),
             ),
 
@@ -586,27 +447,16 @@ class OrderTrackingScreen extends StatelessWidget {
     );
   }
 
-  Widget detailRow(
-    IconData icon,
-    String title,
-    String value,
-  ) {
+  Widget detailRow(IconData icon, String title, String value) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 19,
-          color: Colors.grey.shade600,
-        ),
+        Icon(icon, size: 19, color: Colors.grey.shade600),
 
         const SizedBox(width: 10),
 
         Text(
           title,
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 13,
-          ),
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
         ),
 
         const Spacer(),
@@ -615,10 +465,7 @@ class OrderTrackingScreen extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
         ),
       ],
@@ -633,30 +480,22 @@ class OrderTrackingScreen extends StatelessWidget {
     required Color color,
   }) {
     return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AnimatedContainer(
-          duration:
-              const Duration(
-            milliseconds: 300,
-          ),
+          duration: const Duration(milliseconds: 300),
 
           height: 50,
           width: 50,
 
           decoration: BoxDecoration(
-            color: active
-                ? color
-                : Colors.grey.shade200,
+            color: active ? color : Colors.grey.shade200,
             shape: BoxShape.circle,
           ),
 
           child: Icon(
             icon,
-            color: active
-                ? Colors.white
-                : Colors.grey.shade400,
+            color: active ? Colors.white : Colors.grey.shade400,
             size: 25,
           ),
         ),
@@ -665,25 +504,18 @@ class OrderTrackingScreen extends StatelessWidget {
 
         Expanded(
           child: Padding(
-            padding:
-                const EdgeInsets.only(
-              top: 3,
-            ),
+            padding: const EdgeInsets.only(top: 3),
 
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Text(
                   title,
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight:
-                        FontWeight.bold,
-                    color: active
-                        ? Colors.black
-                        : Colors.grey,
+                    fontWeight: FontWeight.bold,
+                    color: active ? Colors.black : Colors.grey,
                   ),
                 ),
 
@@ -694,9 +526,7 @@ class OrderTrackingScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     height: 1.3,
-                    color: active
-                        ? Colors.grey.shade600
-                        : Colors.grey.shade400,
+                    color: active ? Colors.grey.shade600 : Colors.grey.shade400,
                   ),
                 ),
               ],
@@ -707,31 +537,21 @@ class OrderTrackingScreen extends StatelessWidget {
     );
   }
 
-  Widget trackingLine({
-    required bool active,
-  }) {
+  Widget trackingLine({required bool active}) {
     return Container(
-      margin:
-          const EdgeInsets.only(
-        left: 24,
-      ),
+      margin: const EdgeInsets.only(left: 24),
 
       height: 38,
       width: 3,
 
       decoration: BoxDecoration(
-        color: active
-            ? Colors.green
-            : Colors.grey.shade300,
-        borderRadius:
-            BorderRadius.circular(5),
+        color: active ? Colors.green : Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(5),
       ),
     );
   }
 
-  String getStatusMessage(
-    String status,
-  ) {
+  String getStatusMessage(String status) {
     switch (status) {
       case "Preparing":
         return "Your food is currently being prepared by the kitchen team.";

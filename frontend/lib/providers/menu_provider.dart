@@ -10,8 +10,7 @@ class MenuProvider extends ChangeNotifier {
 
   final List<FoodModel> _foods = [];
 
-  List<FoodModel> get foods =>
-      List.unmodifiable(_foods);
+  List<FoodModel> get foods => List.unmodifiable(_foods);
 
   // ============================================================
   // LOADING
@@ -50,39 +49,24 @@ class MenuProvider extends ChangeNotifier {
         }
 
         final food = FoodModel(
-          id: item['id'] == null
-              ? null
-              : int.tryParse(
-                  item['id'].toString(),
-                ),
+          id: item['id'] == null ? null : int.tryParse(item['id'].toString()),
 
-          name:
-              item['name']?.toString() ??
-              'Unknown Food',
+          name: item['name']?.toString() ?? 'Unknown Food',
 
-          price:
-              double.tryParse(
-                item['price']?.toString() ?? '0',
-              ) ??
-              0.0,
+          price: double.tryParse(item['price']?.toString() ?? '0') ?? 0.0,
 
-          description:
-              item['description']?.toString() ??
-              '',
+          description: item['description']?.toString() ?? '',
 
-          category:
-              item['category']?.toString() ??
-              'Other',
+          category: item['category']?.toString() ?? 'Other',
+
+          cafeteria: item['cafeteria']?.toString() ?? 'Bengaluru Cafe',
 
           imagePath:
-              item['imagePath']?.toString() ??
-              item['image']?.toString() ??
-              '',
+              item['imagePath']?.toString() ?? item['image']?.toString() ?? '',
 
-          isAvailable:
-              item['isAvailable'] == null
-                  ? true
-                  : item['isAvailable'] == true,
+          isAvailable: item['isAvailable'] == null
+              ? true
+              : item['isAvailable'] == true,
         );
 
         _foods.add(food);
@@ -118,8 +102,7 @@ class MenuProvider extends ChangeNotifier {
   // ============================================================
 
   Future<bool> deleteFood(int index) async {
-    if (index < 0 ||
-        index >= _foods.length) {
+    if (index < 0 || index >= _foods.length) {
       return false;
     }
 
@@ -135,9 +118,7 @@ class MenuProvider extends ChangeNotifier {
     try {
       _error = null;
 
-      await ApiService.deleteMenuItem(
-        food.id!,
-      );
+      await ApiService.deleteMenuItem(food.id!);
 
       // Remove only after backend succeeds.
       _foods.removeAt(index);
@@ -158,11 +139,8 @@ class MenuProvider extends ChangeNotifier {
   // TOGGLE AVAILABILITY IN SQLITE
   // ============================================================
 
-  Future<bool> toggleAvailability(
-    int index,
-  ) async {
-    if (index < 0 ||
-        index >= _foods.length) {
+  Future<bool> toggleAvailability(int index) async {
+    if (index < 0 || index >= _foods.length) {
       return false;
     }
 
@@ -175,20 +153,15 @@ class MenuProvider extends ChangeNotifier {
     }
 
     // New availability value.
-    final newAvailability =
-        !food.isAvailable;
+    final newAvailability = !food.isAvailable;
 
     try {
       _error = null;
 
-      await ApiService.updateMenuAvailability(
-        food.id!,
-        newAvailability,
-      );
+      await ApiService.updateMenuAvailability(food.id!, newAvailability);
 
       // Update only after backend succeeds.
-      _foods[index].isAvailable =
-          newAvailability;
+      _foods[index].isAvailable = newAvailability;
 
       notifyListeners();
 
@@ -213,8 +186,7 @@ class MenuProvider extends ChangeNotifier {
     required String description,
     required String category,
   }) async {
-    if (index < 0 ||
-        index >= _foods.length) {
+    if (index < 0 || index >= _foods.length) {
       return false;
     }
 
@@ -233,23 +205,19 @@ class MenuProvider extends ChangeNotifier {
       // SEND UPDATE TO BACKEND
       // ========================================================
 
-      await ApiService.updateMenuItem(
-        oldFood.id!,
-        {
-          'name': name,
-          'price': price,
-          'description': description,
-          'category': category,
+      await ApiService.updateMenuItem(oldFood.id!, {
+        'name': name,
+        'price': price,
+        'description': description,
+        'category': category,
 
-          // IMPORTANT:
-          // We keep the existing image.
-          // User does NOT need to select a new picture.
-          'image': oldFood.imagePath,
+        // IMPORTANT:
+        // We keep the existing image.
+        // User does NOT need to select a new picture.
+        'image': oldFood.imagePath,
 
-          'isAvailable':
-              oldFood.isAvailable,
-        },
-      );
+        'isAvailable': oldFood.isAvailable,
+      });
 
       // ========================================================
       // UPDATE LOCAL OBJECT AFTER BACKEND SUCCESS
@@ -263,10 +231,11 @@ class MenuProvider extends ChangeNotifier {
         description: description,
         category: category,
 
+        cafeteria: oldFood.cafeteria,
+
         imagePath: oldFood.imagePath,
 
-        isAvailable:
-            oldFood.isAvailable,
+        isAvailable: oldFood.isAvailable,
       );
 
       notifyListeners();

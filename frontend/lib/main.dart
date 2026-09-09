@@ -14,23 +14,17 @@ void main() {
         // ==========================
         // CART PROVIDER
         // ==========================
-        ChangeNotifierProvider(
-          create: (_) => CartProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
 
         // ==========================
         // ORDER PROVIDER
         // ==========================
-        ChangeNotifierProvider(
-          create: (_) => OrderProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => OrderProvider()),
 
         // ==========================
         // MENU PROVIDER
         // ==========================
-        ChangeNotifierProvider(
-          create: (_) => MenuProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],
 
       // ==========================
@@ -54,12 +48,9 @@ class CampusEats extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
 
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.orange,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
 
-        scaffoldBackgroundColor:
-            const Color(0xFFFFF9F4),
+        scaffoldBackgroundColor: const Color(0xFFFFF9F4),
 
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.orange,
@@ -71,7 +62,6 @@ class CampusEats extends StatelessWidget {
       // ==========================
       // FIRST SCREEN
       // ==========================
-
       home: const SplashScreen(),
     );
   }

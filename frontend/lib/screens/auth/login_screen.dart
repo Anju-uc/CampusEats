@@ -3,25 +3,23 @@ import 'package:flutter/material.dart';
 import '../student/home_screen.dart';
 import '../kitchen/kitchen_dashboard.dart';
 import '../kitchen/admin_dashboard.dart';
+import '../../services/api_service.dart';
+import '../../providers/order_provider.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   final String role;
 
-  const LoginScreen({
-    super.key,
-    this.role = "Student",
-  });
+  const LoginScreen({super.key, this.role = "Student"});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController idController =
-      TextEditingController();
+  final TextEditingController idController = TextEditingController();
 
-  final TextEditingController passwordController =
-      TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   bool hidePassword = true;
   bool isLoading = false;
@@ -62,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return "Staff ID";
 
       case "Admin":
-        return "Admin ID";
+        return "Cafeteria Admin ID";
 
       default:
         return "PES Student ID";
@@ -102,18 +100,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // =====================================================
-  // DEMO LOGIN
+  // LOGIN
   // =====================================================
 
-  void login() {
+  Future<void> login() async {
     final id = idController.text.trim().toLowerCase();
     final password = passwordController.text.trim();
 
     if (id.isEmpty || password.isEmpty) {
-      showMessage(
-        "Please enter your ID and password",
-        Colors.red,
-      );
+      showMessage("Please enter your ID and password", Colors.red);
       return;
     }
 
@@ -121,103 +116,67 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading = true;
     });
 
-    // Small delay to make login feel realistic.
-    Future.delayed(
-      const Duration(milliseconds: 700),
-      () {
+    try {
+      if (widget.role == "Admin") {
+        final result = await ApiService.loginAdmin(id, password);
+        if (result['success'] != true) {
+          throw Exception('Invalid cafeteria admin credentials');
+        }
+      } else {
+        final valid = widget.role == "Student"
+            ? (id == "student" ||
+                      id == "student@pes.edu" ||
+                      id.startsWith("pes")) &&
+                  password == "1234"
+            : widget.role == "Teacher"
+            ? (id == "teacher" ||
+                      id == "teacher@pes.edu" ||
+                      id.startsWith("faculty")) &&
+                  password == "1234"
+            : (id == "kitchen" || id == "kitchen@campuseats.com") &&
+                  password == "1234";
+        if (!valid) throw Exception('Invalid ${widget.role} credentials');
+      }
+      setState(() {
+        isLoading = false;
+      });
+
+      // =================================================
+      // OPEN CORRECT DASHBOARD
+      // =================================================
+
+      if (widget.role == "Student" || widget.role == "Teacher") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      } else if (widget.role == "Kitchen Staff") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const KitchenDashboard()),
+        );
+      } else if (widget.role == "Admin") {
+        await context.read<OrderProvider>().loadOrders();
         if (!mounted) return;
-
-        bool valid = false;
-
-        // =================================================
-        // DEMO ACCOUNTS
-        // =================================================
-
-        switch (widget.role) {
-          case "Student":
-            valid =
-                (id == "student" ||
-                    id == "student@pes.edu" ||
-                    id.startsWith("pes")) &&
-                password == "1234";
-            break;
-
-          case "Teacher":
-            valid =
-                (id == "teacher" ||
-                    id == "teacher@pes.edu" ||
-                    id.startsWith("faculty")) &&
-                password == "1234";
-            break;
-
-          case "Kitchen Staff":
-            valid =
-                (id == "kitchen" ||
-                    id == "kitchen@campuseats.com") &&
-                password == "1234";
-            break;
-
-          case "Admin":
-            valid =
-                (id == "admin" ||
-                    id == "admin@campuseats.com") &&
-                password == "1234";
-            break;
-        }
-
-        setState(() {
-          isLoading = false;
-        });
-
-        if (!valid) {
-          showMessage(
-            "Invalid ${widget.role} ID or password",
-            Colors.red,
-          );
-          return;
-        }
-
-        // =================================================
-        // OPEN CORRECT DASHBOARD
-        // =================================================
-
-        if (widget.role == "Student" ||
-            widget.role == "Teacher") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
-          );
-        } else if (widget.role == "Kitchen Staff") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  const KitchenDashboard(),
-            ),
-          );
-        } else if (widget.role == "Admin") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  const AdminDashboard(),
-            ),
-          );
-        }
-      },
-    );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminDashboard()),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+      showMessage(e.toString().replaceFirst('Exception: ', ''), Colors.red);
+    }
   }
 
   // =====================================================
   // MESSAGE
   // =====================================================
 
-  void showMessage(
-    String message,
-    Color color,
-  ) {
+  void showMessage(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -238,44 +197,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            24,
-            30,
-            24,
-            30,
-          ),
+          padding: const EdgeInsets.fromLTRB(24, 30, 24, 30),
 
           child: Column(
             children: [
               // =================================================
               // TOP LOGO
               // =================================================
-
               Container(
                 width: 85,
                 height: 85,
 
                 decoration: BoxDecoration(
                   color: roleColor,
-                  borderRadius:
-                      BorderRadius.circular(25),
+                  borderRadius: BorderRadius.circular(25),
 
                   boxShadow: [
                     BoxShadow(
-                      color:
-                          roleColor.withOpacity(0.25),
+                      color: roleColor.withOpacity(0.25),
                       blurRadius: 20,
-                      offset:
-                          const Offset(0, 8),
+                      offset: const Offset(0, 8),
                     ),
                   ],
                 ),
 
-                child: Icon(
-                  roleIcon,
-                  color: Colors.white,
-                  size: 42,
-                ),
+                child: Icon(roleIcon, color: Colors.white, size: 42),
               ),
 
               const SizedBox(height: 22),
@@ -293,10 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const Text(
                 "PES University Food Ordering",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
 
               const SizedBox(height: 35),
@@ -304,7 +247,6 @@ class _LoginScreenState extends State<LoginScreen> {
               // =================================================
               // ROLE TITLE
               // =================================================
-
               Text(
                 roleTitle,
                 style: TextStyle(
@@ -318,10 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               Text(
                 "Sign in to continue to CampusEats",
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               ),
 
               const SizedBox(height: 30),
@@ -329,7 +268,6 @@ class _LoginScreenState extends State<LoginScreen> {
               // =================================================
               // ROLE BADGE
               // =================================================
-
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -337,20 +275,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 decoration: BoxDecoration(
-                  color:
-                      roleColor.withOpacity(0.10),
-                  borderRadius:
-                      BorderRadius.circular(30),
+                  color: roleColor.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(30),
                 ),
 
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      roleIcon,
-                      size: 19,
-                      color: roleColor,
-                    ),
+                    Icon(roleIcon, size: 19, color: roleColor),
 
                     const SizedBox(width: 8),
 
@@ -358,8 +290,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       widget.role,
                       style: TextStyle(
                         color: roleColor,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -371,7 +302,6 @@ class _LoginScreenState extends State<LoginScreen> {
               // =================================================
               // ID FIELD
               // =================================================
-
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -388,43 +318,29 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: idController,
 
-                textInputAction:
-                    TextInputAction.next,
+                textInputAction: TextInputAction.next,
 
                 decoration: InputDecoration(
                   hintText: _getIdHint(),
 
-                  prefixIcon: Icon(
-                    Icons.badge_outlined,
-                    color: roleColor,
-                  ),
+                  prefixIcon: Icon(Icons.badge_outlined, color: roleColor),
 
                   filled: true,
                   fillColor: Colors.white,
 
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
 
-                  enabledBorder:
-                      OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade200,
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
 
-                  focusedBorder:
-                      OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: roleColor,
-                      width: 1.5,
-                    ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: roleColor, width: 1.5),
                   ),
                 ),
               ),
@@ -434,15 +350,11 @@ class _LoginScreenState extends State<LoginScreen> {
               // =================================================
               // PASSWORD
               // =================================================
-
               Align(
                 alignment: Alignment.centerLeft,
                 child: const Text(
                   "Password",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ),
 
@@ -468,15 +380,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
-                        hidePassword =
-                            !hidePassword;
+                        hidePassword = !hidePassword;
                       });
                     },
 
                     icon: Icon(
-                      hidePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                      hidePassword ? Icons.visibility_off : Icons.visibility,
                     ),
                   ),
 
@@ -484,28 +393,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   fillColor: Colors.white,
 
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
 
-                  enabledBorder:
-                      OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade200,
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
 
-                  focusedBorder:
-                      OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: roleColor,
-                      width: 1.5,
-                    ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: roleColor, width: 1.5),
                   ),
                 ),
               ),
@@ -515,7 +414,6 @@ class _LoginScreenState extends State<LoginScreen> {
               // =================================================
               // FORGOT PASSWORD
               // =================================================
-
               Align(
                 alignment: Alignment.centerRight,
 
@@ -527,9 +425,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
 
-                  child: const Text(
-                    "Forgot Password?",
-                  ),
+                  child: const Text("Forgot Password?"),
                 ),
               ),
 
@@ -538,27 +434,21 @@ class _LoginScreenState extends State<LoginScreen> {
               // =================================================
               // LOGIN BUTTON
               // =================================================
-
               SizedBox(
                 width: double.infinity,
                 height: 56,
 
                 child: ElevatedButton(
-                  onPressed:
-                      isLoading ? null : login,
+                  onPressed: isLoading ? null : login,
 
-                  style:
-                      ElevatedButton.styleFrom(
+                  style: ElevatedButton.styleFrom(
                     backgroundColor: roleColor,
-                    foregroundColor:
-                        Colors.white,
+                    foregroundColor: Colors.white,
 
                     elevation: 4,
 
-                    shape:
-                        RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
 
@@ -566,8 +456,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? const SizedBox(
                           width: 24,
                           height: 24,
-                          child:
-                              CircularProgressIndicator(
+                          child: CircularProgressIndicator(
                             color: Colors.white,
                             strokeWidth: 2.5,
                           ),
@@ -576,8 +465,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           "LOGIN",
                           style: TextStyle(
                             fontSize: 17,
-                            fontWeight:
-                                FontWeight.w800,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                 ),
@@ -588,63 +476,45 @@ class _LoginScreenState extends State<LoginScreen> {
               // =================================================
               // DEMO ACCOUNT INFORMATION
               // =================================================
-
               Container(
                 width: double.infinity,
 
-                padding:
-                    const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
 
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(16),
 
-                  border: Border.all(
-                    color: Colors.grey.shade200,
-                  ),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
 
                 child: Column(
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: roleColor,
-                          size: 20,
-                        ),
+                        Icon(Icons.info_outline, color: roleColor, size: 20),
 
                         const SizedBox(width: 8),
 
                         const Text(
-                          "Demo Login",
-                          style: TextStyle(
-                            fontWeight:
-                                FontWeight.bold,
-                          ),
+                          "Demo Login (Use one of the cafeteria admin emails below)",
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
 
                     const SizedBox(height: 10),
 
-                    Text(
-                      "ID: ${_getDemoId()}",
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 13,
-                      ),
+                    const Text(
+                      "ID: bengaluru@campuseats.com / pesu@campuseats.com / nonveg@campuseats.com",
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
                     ),
 
                     const SizedBox(height: 4),
 
                     const Text(
                       "Password: 1234",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
                     ),
                   ],
                 ),
@@ -654,10 +524,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               Text(
                 "CampusEats • PES University",
-                style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
               ),
             ],
           ),
@@ -675,7 +542,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return "Example: kitchen";
 
       case "Admin":
-        return "Example: admin";
+        return "Example: bengaluru@campuseats.com";
 
       default:
         return "Example: student";
@@ -691,7 +558,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return "kitchen";
 
       case "Admin":
-        return "admin";
+        return "bengaluru@campuseats.com";
 
       default:
         return "student";

@@ -25,8 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.8",
       category: "South Indian",
       image: "assets/images/food/idli.jpg",
-      description:
-          "Soft steamed idlis served with chutney and sambar.",
+      description: "Soft steamed idlis served with chutney and sambar.",
       emoji: "🥣",
     ),
     FoodItem(
@@ -35,8 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.7",
       category: "South Indian",
       image: "assets/images/food/vada.jpg",
-      description:
-          "Crispy South Indian medu vada.",
+      description: "Crispy South Indian medu vada.",
       emoji: "🍩",
     ),
     FoodItem(
@@ -45,8 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.9",
       category: "South Indian",
       image: "assets/images/food/masala_dosa.jpg",
-      description:
-          "Crispy dosa filled with delicious potato masala.",
+      description: "Crispy dosa filled with delicious potato masala.",
       emoji: "🥞",
     ),
     FoodItem(
@@ -55,8 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.7",
       category: "South Indian",
       image: "assets/images/food/set_dosa.jpg",
-      description:
-          "Soft and fluffy set dosa served with chutney.",
+      description: "Soft and fluffy set dosa served with chutney.",
       emoji: "🥞",
     ),
     FoodItem(
@@ -65,8 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.6",
       category: "South Indian",
       image: "assets/images/food/puri.jpg",
-      description:
-          "Hot fluffy puris with delicious side dish.",
+      description: "Hot fluffy puris with delicious side dish.",
       emoji: "🫓",
     ),
     FoodItem(
@@ -75,8 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.8",
       category: "South Indian",
       image: "assets/images/food/bisibele_bath.jpg",
-      description:
-          "Traditional Karnataka-style spicy rice meal.",
+      description: "Traditional Karnataka-style spicy rice meal.",
       emoji: "🍚",
     ),
     FoodItem(
@@ -85,8 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.6",
       category: "South Indian",
       image: "assets/images/food/lemon_rice.jpg",
-      description:
-          "Fresh lemon rice with peanuts and spices.",
+      description: "Fresh lemon rice with peanuts and spices.",
       emoji: "🍋",
     ),
     FoodItem(
@@ -95,8 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.8",
       category: "North Indian",
       image: "assets/images/food/chole_bhature.jpg",
-      description:
-          "Fluffy bhature served with spicy chole.",
+      description: "Fluffy bhature served with spicy chole.",
       emoji: "🍛",
     ),
     FoodItem(
@@ -105,8 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.9",
       category: "Chicken",
       image: "assets/images/food/chicken_biryani.jpg",
-      description:
-          "Aromatic chicken biryani with delicious spices.",
+      description: "Aromatic chicken biryani with delicious spices.",
       emoji: "🍗",
     ),
     FoodItem(
@@ -115,8 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.8",
       category: "Chicken",
       image: "assets/images/food/chicken_65.jpg",
-      description:
-          "Crispy spicy Chicken 65.",
+      description: "Crispy spicy Chicken 65.",
       emoji: "🍗",
     ),
     FoodItem(
@@ -125,8 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.7",
       category: "Fast Food",
       image: "assets/images/food/pizza.jpg",
-      description:
-          "Cheesy hot pizza perfect for your break.",
+      description: "Cheesy hot pizza perfect for your break.",
       emoji: "🍕",
     ),
     FoodItem(
@@ -135,8 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.8",
       category: "Fast Food",
       image: "assets/images/food/burger.jpg",
-      description:
-          "Loaded campus-style burger.",
+      description: "Loaded campus-style burger.",
       emoji: "🍔",
     ),
     FoodItem(
@@ -145,8 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.7",
       category: "Chinese",
       image: "assets/images/food/noodles.jpg",
-      description:
-          "Hot and tasty Indo-Chinese noodles.",
+      description: "Hot and tasty Indo-Chinese noodles.",
       emoji: "🍜",
     ),
     FoodItem(
@@ -155,8 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.9",
       category: "Beverages",
       image: "assets/images/food/coffee.jpg",
-      description:
-          "Fresh hot coffee for your study session.",
+      description: "Fresh hot coffee for your study session.",
       emoji: "☕",
     ),
     FoodItem(
@@ -165,8 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
       rating: "4.8",
       category: "Beverages",
       image: "assets/images/food/cold_coffee.jpg",
-      description:
-          "Creamy chilled cold coffee.",
+      description: "Creamy chilled cold coffee.",
       emoji: "🥤",
     ),
   ];
@@ -178,45 +163,35 @@ class _HomeScreenState extends State<HomeScreen> {
   void openCart() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const CartScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const CartScreen()),
     );
   }
 
   void openMenu() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const MenuScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const MenuScreen()),
     );
   }
 
   void openNotifications() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const NotificationScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const NotificationScreen()),
     );
   }
 
   void openProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const ProfileScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ProfileScreen()),
     );
   }
 
   void openTracking() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const OrderTrackingScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const OrderTrackingScreen()),
     );
   }
 
@@ -248,14 +223,11 @@ class _HomeScreenState extends State<HomeScreen> {
   List<FoodItem> get filteredFoods {
     return foods.where((food) {
       final categoryMatch =
-          selectedCategory == "All" ||
-          food.category == selectedCategory;
+          selectedCategory == "All" || food.category == selectedCategory;
 
       final searchMatch =
           searchText.trim().isEmpty ||
-          food.name
-              .toLowerCase()
-              .contains(searchText.toLowerCase());
+          food.name.toLowerCase().contains(searchText.toLowerCase());
 
       return categoryMatch && searchMatch;
     }).toList();
@@ -273,7 +245,6 @@ class _HomeScreenState extends State<HomeScreen> {
       // ========================================================
       // APP BAR
       // ========================================================
-
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xFFFF8A00),
@@ -292,10 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Text(
               "PES University • Student",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 11,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ],
         ),
@@ -319,18 +287,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           IconButton(
-            icon: const Icon(
-              Icons.shopping_bag_outlined,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
             onPressed: openCart,
           ),
 
           IconButton(
-            icon: const Icon(
-              Icons.person_outline_rounded,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.person_outline_rounded, color: Colors.white),
             onPressed: openProfile,
           ),
         ],
@@ -339,30 +301,20 @@ class _HomeScreenState extends State<HomeScreen> {
       // ========================================================
       // FLOATING CART
       // ========================================================
-
-      floatingActionButton:
-          FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFFFF8A00),
         onPressed: openCart,
-        icon: const Icon(
-          Icons.shopping_bag_rounded,
-          color: Colors.white,
-        ),
+        icon: const Icon(Icons.shopping_bag_rounded, color: Colors.white),
         label: const Text(
           "Cart",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
 
       // ========================================================
       // BOTTOM NAVIGATION
       // ========================================================
-
-      bottomNavigationBar:
-          BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
@@ -402,17 +354,11 @@ class _HomeScreenState extends State<HomeScreen> {
       // ========================================================
       // BODY
       // ========================================================
-
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
 
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            18,
-            16,
-            110,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 110),
 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,10 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const Text(
                 "Hungry between classes? We've got you 😋",
-                style: TextStyle(
-                  color: Colors.black54,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.black54, fontSize: 13),
               ),
 
               const SizedBox(height: 18),
@@ -453,13 +396,11 @@ class _HomeScreenState extends State<HomeScreen> {
               // ==================================================
               // SEARCH
               // ==================================================
-
               Container(
                 height: 56,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius:
-                      BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(18),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x10000000),
@@ -476,10 +417,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   },
 
-                  decoration:
-                      const InputDecoration(
-                    hintText:
-                        "Search dosa, biryani, pizza...",
+                  decoration: const InputDecoration(
+                    hintText: "Search dosa, biryani, pizza...",
 
                     prefixIcon: Icon(
                       Icons.search_rounded,
@@ -489,10 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     border: InputBorder.none,
 
-                    contentPadding:
-                        EdgeInsets.symmetric(
-                      vertical: 17,
-                    ),
+                    contentPadding: EdgeInsets.symmetric(vertical: 17),
                   ),
                 ),
               ),
@@ -502,7 +438,6 @@ class _HomeScreenState extends State<HomeScreen> {
               // ==================================================
               // TRACK ORDER
               // ==================================================
-
               GestureDetector(
                 onTap: openTracking,
 
@@ -512,11 +447,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius:
-                        BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.orange.shade100,
-                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.orange.shade100),
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x12000000),
@@ -532,8 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 55,
                         width: 55,
 
-                        decoration:
-                            BoxDecoration(
+                        decoration: BoxDecoration(
                           color: Colors.orange.shade50,
                           shape: BoxShape.circle,
                         ),
@@ -549,15 +480,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const Expanded(
                         child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               "Track Your Order",
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight:
-                                    FontWeight.w900,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                             SizedBox(height: 4),
@@ -573,16 +502,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
 
                       Container(
-                        padding:
-                            const EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 8,
                         ),
 
                         decoration: BoxDecoration(
                           color: Colors.orange,
-                          borderRadius:
-                              BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
 
                         child: const Text(
@@ -590,8 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 11,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -605,23 +531,18 @@ class _HomeScreenState extends State<HomeScreen> {
               // ==================================================
               // BANNER
               // ==================================================
-
               Container(
                 height: 190,
                 width: double.infinity,
 
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFFFF7A00),
-                      Color(0xFFFFB347),
-                    ],
+                    colors: [Color(0xFFFF7A00), Color(0xFFFFB347)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
 
-                  borderRadius:
-                      BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(28),
 
                   boxShadow: const [
                     BoxShadow(
@@ -642,10 +563,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 150,
                         width: 150,
 
-                        decoration:
-                            BoxDecoration(
-                          color: Colors.white
-                              .withValues(alpha: 0.12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -659,20 +578,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 95,
                         width: 95,
 
-                        decoration:
-                            BoxDecoration(
-                          color: Colors.white
-                              .withValues(alpha: 0.18),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
                           shape: BoxShape.circle,
                         ),
 
                         child: const Center(
-                          child: Text(
-                            "🍕",
-                            style: TextStyle(
-                              fontSize: 55,
-                            ),
-                          ),
+                          child: Text("🍕", style: TextStyle(fontSize: 55)),
                         ),
                       ),
                     ),
@@ -681,16 +593,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: EdgeInsets.all(22),
 
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
 
                         children: [
                           Text(
                             "✨ STUDENT SPECIAL",
                             style: TextStyle(
                               color: Colors.white,
-                              fontWeight:
-                                  FontWeight.bold,
+                              fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
                           ),
@@ -703,8 +613,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: Colors.white,
                               fontSize: 25,
                               height: 1.05,
-                              fontWeight:
-                                  FontWeight.w900,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
 
@@ -715,8 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 13,
-                              fontWeight:
-                                  FontWeight.w600,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -731,7 +639,6 @@ class _HomeScreenState extends State<HomeScreen> {
               // ==================================================
               // CATEGORIES
               // ==================================================
-
               sectionTitle(
                 "What are you in the mood for? 😋",
                 "See All",
@@ -745,35 +652,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  physics:
-                      const BouncingScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
 
                   children: [
                     categoryCard("All", "🍽️"),
-                    categoryCard(
-                      "South Indian",
-                      "🥞",
-                    ),
-                    categoryCard(
-                      "North Indian",
-                      "🍛",
-                    ),
-                    categoryCard(
-                      "Chicken",
-                      "🍗",
-                    ),
-                    categoryCard(
-                      "Fast Food",
-                      "🍔",
-                    ),
-                    categoryCard(
-                      "Chinese",
-                      "🍜",
-                    ),
-                    categoryCard(
-                      "Beverages",
-                      "☕",
-                    ),
+                    categoryCard("South Indian", "🥞"),
+                    categoryCard("North Indian", "🍛"),
+                    categoryCard("Chicken", "🍗"),
+                    categoryCard("Fast Food", "🍔"),
+                    categoryCard("Chinese", "🍜"),
+                    categoryCard("Beverages", "☕"),
                   ],
                 ),
               ),
@@ -783,12 +671,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // ==================================================
               // CAFETERIAS
               // ==================================================
-
-              sectionTitle(
-                "PES Cafeterias 🏫",
-                "View All",
-                openMenu,
-              ),
+              sectionTitle("PES Cafeterias 🏫", "View All", openMenu),
 
               const SizedBox(height: 15),
 
@@ -797,8 +680,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  physics:
-                      const BouncingScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
 
                   children: [
                     cafeCard(
@@ -807,11 +689,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       "☕",
                     ),
 
-                    cafeCard(
-                      "Cafe PESU",
-                      "Dosa • Pizza • Snacks",
-                      "🍕",
-                    ),
+                    cafeCard("Cafe PESU", "Dosa • Pizza • Snacks", "🍕"),
 
                     cafeCard(
                       "Non-Veg Cafeteria",
@@ -827,12 +705,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // ==================================================
               // TRENDING
               // ==================================================
-
-              sectionTitle(
-                "🔥 Trending with Students",
-                "See All",
-                openMenu,
-              ),
+              sectionTitle("🔥 Trending with Students", "See All", openMenu),
 
               const SizedBox(height: 15),
 
@@ -841,13 +714,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  physics:
-                      const BouncingScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
 
-                  children: [
-                    for (final food in foods.take(6))
-                      foodCard(food),
-                  ],
+                  children: [for (final food in foods.take(6)) foodCard(food)],
                 ),
               ),
 
@@ -856,15 +725,13 @@ class _HomeScreenState extends State<HomeScreen> {
               // ==================================================
               // BETWEEN CLASSES CARD
               // ==================================================
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
 
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFE8D2),
-                  borderRadius:
-                      BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(24),
                 ),
 
                 child: Row(
@@ -873,19 +740,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 70,
                       width: 70,
 
-                      decoration:
-                          const BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
 
                       child: const Center(
-                        child: Text(
-                          "😋",
-                          style: TextStyle(
-                            fontSize: 40,
-                          ),
-                        ),
+                        child: Text("😋", style: TextStyle(fontSize: 40)),
                       ),
                     ),
 
@@ -893,15 +754,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "Between classes? ⚡",
                             style: TextStyle(
                               fontSize: 17,
-                              fontWeight:
-                                  FontWeight.w900,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
 
@@ -932,20 +791,11 @@ class _HomeScreenState extends State<HomeScreen> {
               // ==================================================
               // POPULAR FOOD
               // ==================================================
-
-              sectionTitle(
-                "🍴 Popular on Campus",
-                "View Menu",
-                openMenu,
-              ),
+              sectionTitle("🍴 Popular on Campus", "View Menu", openMenu),
 
               const SizedBox(height: 15),
 
-              ...filteredFoods
-                  .take(8)
-                  .map(
-                    (food) => popularFoodTile(food),
-                  ),
+              ...filteredFoods.take(8).map((food) => popularFoodTile(food)),
             ],
           ),
         ),
@@ -957,12 +807,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // CATEGORY CARD
   // ============================================================
 
-  Widget categoryCard(
-    String title,
-    String emoji,
-  ) {
-    final bool isSelected =
-        selectedCategory == title;
+  Widget categoryCard(String title, String emoji) {
+    final bool isSelected = selectedCategory == title;
 
     return GestureDetector(
       onTap: () {
@@ -973,16 +819,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
       child: Container(
         width: 105,
-        margin:
-            const EdgeInsets.only(right: 12),
+        margin: const EdgeInsets.only(right: 12),
 
         decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFFFF8A00)
-              : Colors.white,
+          color: isSelected ? const Color(0xFFFF8A00) : Colors.white,
 
-          borderRadius:
-              BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20),
 
           boxShadow: const [
             BoxShadow(
@@ -994,16 +836,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
 
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
 
           children: [
-            Text(
-              emoji,
-              style: const TextStyle(
-                fontSize: 30,
-              ),
-            ),
+            Text(emoji, style: const TextStyle(fontSize: 30)),
 
             const SizedBox(height: 8),
 
@@ -1011,16 +847,12 @@ class _HomeScreenState extends State<HomeScreen> {
               title,
               textAlign: TextAlign.center,
               maxLines: 2,
-              overflow:
-                  TextOverflow.ellipsis,
+              overflow: TextOverflow.ellipsis,
 
               style: TextStyle(
-                color: isSelected
-                    ? Colors.white
-                    : Colors.black87,
+                color: isSelected ? Colors.white : Colors.black87,
                 fontSize: 11,
-                fontWeight:
-                    FontWeight.bold,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -1033,27 +865,21 @@ class _HomeScreenState extends State<HomeScreen> {
   // CAFETERIA CARD
   // ============================================================
 
-  Widget cafeCard(
-    String title,
-    String subtitle,
-    String emoji,
-  ) {
+  Widget cafeCard(String title, String subtitle, String emoji) {
     return GestureDetector(
       onTap: openMenu,
 
       child: Container(
         width: 260,
 
-        margin:
-            const EdgeInsets.only(right: 14),
+        margin: const EdgeInsets.only(right: 14),
 
         padding: const EdgeInsets.all(17),
 
         decoration: BoxDecoration(
           color: Colors.white,
 
-          borderRadius:
-              BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(22),
 
           boxShadow: const [
             BoxShadow(
@@ -1070,19 +896,13 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 62,
               width: 62,
 
-              decoration:
-                  const BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xFFFFF0DE),
                 shape: BoxShape.circle,
               ),
 
               child: Center(
-                child: Text(
-                  emoji,
-                  style: const TextStyle(
-                    fontSize: 32,
-                  ),
-                ),
+                child: Text(emoji, style: const TextStyle(fontSize: 32)),
               ),
             ),
 
@@ -1090,19 +910,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
 
                 children: [
                   Text(
                     title,
                     style: const TextStyle(
                       fontSize: 15,
-                      fontWeight:
-                          FontWeight.w900,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
 
@@ -1111,24 +928,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     subtitle,
                     maxLines: 2,
-                    overflow:
-                        TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
 
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 11,
-                    ),
+                    style: const TextStyle(color: Colors.grey, fontSize: 11),
                   ),
 
                   const SizedBox(height: 7),
 
                   const Row(
                     children: [
-                      Icon(
-                        Icons.circle,
-                        color: Colors.green,
-                        size: 8,
-                      ),
+                      Icon(Icons.circle, color: Colors.green, size: 8),
 
                       SizedBox(width: 5),
 
@@ -1137,8 +946,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           color: Colors.green,
                           fontSize: 11,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
@@ -1163,14 +971,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         width: 205,
 
-        margin:
-            const EdgeInsets.only(right: 15),
+        margin: const EdgeInsets.only(right: 15),
 
         decoration: BoxDecoration(
           color: Colors.white,
 
-          borderRadius:
-              BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(22),
 
           boxShadow: const [
             BoxShadow(
@@ -1182,13 +988,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
 
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(
+              borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(22),
               ),
 
@@ -1198,20 +1002,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: double.infinity,
                 fit: BoxFit.cover,
 
-                errorBuilder:
-                    (context, error, stackTrace) {
+                errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 145,
-                    color:
-                        const Color(0xFFFFF0DE),
+                    color: const Color(0xFFFFF0DE),
 
                     child: Center(
                       child: Text(
                         food.emoji,
-                        style:
-                            const TextStyle(
-                          fontSize: 55,
-                        ),
+                        style: const TextStyle(fontSize: 55),
                       ),
                     ),
                   );
@@ -1220,24 +1019,19 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             Padding(
-              padding:
-                  const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
 
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   Text(
                     food.name,
                     maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
 
-                    style:
-                        const TextStyle(
-                      fontWeight:
-                          FontWeight.w900,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
                       fontSize: 15,
                     ),
                   ),
@@ -1256,10 +1050,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       Text(
                         food.rating,
-                        style:
-                            const TextStyle(
-                          fontWeight:
-                              FontWeight.bold,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
                       ),
@@ -1268,11 +1060,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       Text(
                         food.price,
-                        style:
-                            const TextStyle(
+                        style: const TextStyle(
                           color: Colors.green,
-                          fontWeight:
-                              FontWeight.w900,
+                          fontWeight: FontWeight.w900,
                           fontSize: 15,
                         ),
                       ),
@@ -1291,37 +1081,29 @@ class _HomeScreenState extends State<HomeScreen> {
   // POPULAR FOOD TILE
   // ============================================================
 
-  Widget popularFoodTile(
-    FoodItem food,
-  ) {
+  Widget popularFoodTile(FoodItem food) {
     return GestureDetector(
       onTap: () => openFood(food),
 
       child: Container(
-        margin:
-            const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 12),
 
         padding: const EdgeInsets.all(10),
 
         decoration: BoxDecoration(
           color: Colors.white,
 
-          borderRadius:
-              BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20),
 
           boxShadow: const [
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 10,
-            ),
+            BoxShadow(color: Color(0x0A000000), blurRadius: 10),
           ],
         ),
 
         child: Row(
           children: [
             ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(15),
 
               child: Image.asset(
                 food.image,
@@ -1329,22 +1111,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 75,
                 fit: BoxFit.cover,
 
-                errorBuilder:
-                    (context, error, stackTrace) {
+                errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 70,
                     width: 75,
 
-                    color:
-                        const Color(0xFFFFF0DE),
+                    color: const Color(0xFFFFF0DE),
 
                     child: Center(
                       child: Text(
                         food.emoji,
-                        style:
-                            const TextStyle(
-                          fontSize: 30,
-                        ),
+                        style: const TextStyle(fontSize: 30),
                       ),
                     ),
                   );
@@ -1356,16 +1133,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   Text(
                     food.name,
-                    style:
-                        const TextStyle(
-                      fontWeight:
-                          FontWeight.w900,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
                       fontSize: 15,
                     ),
                   ),
@@ -1374,11 +1148,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   Text(
                     food.category,
-                    style:
-                        const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 11,
-                    ),
+                    style: const TextStyle(color: Colors.grey, fontSize: 11),
                   ),
 
                   const SizedBox(height: 4),
@@ -1395,8 +1165,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       Text(
                         food.rating,
-                        style:
-                            const TextStyle(
+                        style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 12,
                         ),
@@ -1409,11 +1178,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Text(
               food.price,
-              style:
-                  const TextStyle(
+              style: const TextStyle(
                 color: Colors.green,
-                fontWeight:
-                    FontWeight.w900,
+                fontWeight: FontWeight.w900,
                 fontSize: 15,
               ),
             ),
@@ -1428,23 +1195,15 @@ class _HomeScreenState extends State<HomeScreen> {
 // SECTION TITLE
 // ================================================================
 
-Widget sectionTitle(
-  String title,
-  String action,
-  VoidCallback onTap,
-) {
+Widget sectionTitle(String title, String action, VoidCallback onTap) {
   return Row(
-    mainAxisAlignment:
-        MainAxisAlignment.spaceBetween,
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
     children: [
       Expanded(
         child: Text(
           title,
-          style: const TextStyle(
-            fontSize: 21,
-            fontWeight: FontWeight.w900,
-          ),
+          style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
         ),
       ),
 

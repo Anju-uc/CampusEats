@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
+import '../../services/api_service.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -16,8 +18,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.initState();
 
     // Load orders from SQLite/backend
-    Future.microtask(() {
-      context.read<OrderProvider>().loadOrders();
+    Future.microtask(() async {
+      await ApiService.restoreAdminSession();
+      if (!mounted) return;
+      await context.read<OrderProvider>().loadOrders();
     });
   }
 
@@ -38,9 +42,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           if (orderProvider.isLoading) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.orange,
-              ),
+              child: CircularProgressIndicator(color: Colors.orange),
             );
           }
 
@@ -53,8 +55,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.error_outline,
@@ -74,10 +75,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
                     const SizedBox(height: 10),
 
-                    Text(
-                      orderProvider.error!,
-                      textAlign: TextAlign.center,
-                    ),
+                    Text(orderProvider.error!, textAlign: TextAlign.center),
 
                     const SizedBox(height: 20),
 
@@ -107,11 +105,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 children: const [
                   SizedBox(height: 180),
 
-                  Icon(
-                    Icons.receipt_long,
-                    size: 80,
-                    color: Colors.orange,
-                  ),
+                  Icon(Icons.receipt_long, size: 80, color: Colors.orange),
 
                   SizedBox(height: 15),
 
@@ -141,30 +135,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
               itemCount: orders.length,
 
               itemBuilder: (context, index) {
-                final order = orders[index];
+                final orderMap = orders[index];
+                final order = OrderModel.fromMap(orderMap);
 
                 return Card(
                   elevation: 4,
 
-                  margin: const EdgeInsets.only(
-                    bottom: 15,
-                  ),
+                  margin: const EdgeInsets.only(bottom: 15),
 
                   child: Padding(
                     padding: const EdgeInsets.all(16),
 
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
 
                       children: [
                         // ==================================================
                         // FOOD + STATUS
                         // ==================================================
-
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                           children: [
                             Expanded(
@@ -173,54 +163,64 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
                                 style: const TextStyle(
                                   fontSize: 19,
-                                  fontWeight:
-                                      FontWeight.bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
 
                             Container(
-                              padding:
-                                  const EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 6,
                               ),
 
-                              decoration:
-                                  BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: getStatusColor(
                                   order.status,
                                 ).withOpacity(0.15),
 
-                                borderRadius:
-                                    BorderRadius.circular(
-                                  20,
-                                ),
+                                borderRadius: BorderRadius.circular(20),
                               ),
 
                               child: Text(
                                 order.status,
 
                                 style: TextStyle(
-                                  color:
-                                      getStatusColor(
-                                    order.status,
-                                  ),
+                                  color: getStatusColor(order.status),
 
-                                  fontWeight:
-                                      FontWeight.bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ],
                         ),
 
+                        const SizedBox(height: 10),
+
+                        Text(
+                          'Order #${orderProvider.getOrderId(orderMap)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Customer: ${orderProvider.getStudentName(orderMap)}',
+                        ),
+                        const SizedBox(height: 8),
+                        ...orderProvider
+                            .getItems(orderMap)
+                            .map(
+                              (item) => Text(
+                                '${(item['name'] ?? 'Item').toString()} '
+                                'x${orderProvider.getItemQuantity(item)} '
+                                '₹${orderProvider.getItemTotal(item).toStringAsFixed(0)}',
+                              ),
+                            ),
+
                         const SizedBox(height: 12),
 
                         // ==================================================
                         // TOTAL
                         // ==================================================
-
                         Row(
                           children: [
                             const Icon(
@@ -231,14 +231,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             const SizedBox(width: 5),
 
                             Text(
-                              order.total
-                                  .toStringAsFixed(0),
+                              order.total.toStringAsFixed(0),
 
                               style: const TextStyle(
                                 fontSize: 17,
                                 color: Colors.green,
-                                fontWeight:
-                                    FontWeight.bold,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
@@ -249,7 +247,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         // ==================================================
                         // DATE
                         // ==================================================
-
                         Row(
                           children: [
                             const Icon(
@@ -263,10 +260,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             Text(
                               order.date,
 
-                              style:
-                                  const TextStyle(
-                                color: Colors.grey,
-                              ),
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -276,36 +270,77 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         // ==================================================
                         // STATUS MESSAGE
                         // ==================================================
-
                         Container(
                           width: double.infinity,
 
-                          padding:
-                              const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12),
 
-                          decoration:
-                              BoxDecoration(
-                            color:
-                                Colors.grey.shade100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
 
-                            borderRadius:
-                                BorderRadius.circular(
-                              10,
-                            ),
+                            borderRadius: BorderRadius.circular(10),
                           ),
 
                           child: Text(
-                            getStatusMessage(
-                              order.status,
-                            ),
+                            getStatusMessage(order.status),
 
-                            style:
-                                const TextStyle(
-                              fontWeight:
-                                  FontWeight.w500,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
                         ),
+
+                        if (orderProvider.getStatus(orderMap) == 'Confirmed' ||
+                          orderProvider.getStatus(orderMap) == 'Accepted') ...[
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final orderId = orderProvider.getOrderId(
+                                  orderMap,
+                                );
+                                final nextStatus = orderProvider.getStatus(orderMap) == 'Confirmed'
+                                  ? 'Accepted'
+                                  : 'Preparing';
+                                debugPrint(
+                                  'ORDER STATUS UPDATE\n'
+                                  'Order ID: $orderId\n'
+                                  'Old Status: ${orderProvider.getStatus(orderMap)}\n'
+                                  'New Status: $nextStatus',
+                                );
+                                final success = await orderProvider
+                                    .updateOrderStatus(orderId, nextStatus);
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                            ? nextStatus == 'Accepted'
+                                              ? 'Order accepted.'
+                                              : 'Order moved to Preparing.'
+                                            : 'Failed to update order.',
+                                    ),
+                                    backgroundColor: success
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.local_fire_department),
+                              label: Text(
+                                orderProvider.getStatus(orderMap) == 'Confirmed'
+                                    ? 'ACCEPT ORDER'
+                                    : 'START PREPARING',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

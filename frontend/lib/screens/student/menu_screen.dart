@@ -14,11 +14,10 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
-  final TextEditingController searchController =
-      TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
   String selectedCategory = 'All';
-  String selectedCafeteria = 'Main Cafeteria';
+  String selectedCafeteria = 'Bengaluru Cafe';
 
   final List<String> categories = [
     'All',
@@ -31,10 +30,9 @@ class _MenuScreenState extends State<MenuScreen> {
   ];
 
   final List<String> cafeterias = [
-    'Main Cafeteria',
-    'Block A',
-    'Block B',
-    'Block C',
+    'Bengaluru Cafe',
+    'Cafe PESU',
+    'Non-Veg Cafeteria',
   ];
 
   // ============================================================
@@ -66,18 +64,17 @@ class _MenuScreenState extends State<MenuScreen> {
   // FILTER FOODS
   // ============================================================
 
-  List<FoodModel> getFilteredFoods(
-    List<FoodModel> foods,
-  ) {
-    final search =
-        searchController.text.trim().toLowerCase();
+  List<FoodModel> getFilteredFoods(List<FoodModel> foods) {
+    final search = searchController.text.trim().toLowerCase();
 
     return foods.where((food) {
       // CATEGORY
       final matchesCategory =
           selectedCategory == 'All' ||
-          food.category.toLowerCase() ==
-              selectedCategory.toLowerCase();
+          food.category.toLowerCase() == selectedCategory.toLowerCase();
+
+      final matchesCafeteria =
+          food.cafeteria.toLowerCase() == selectedCafeteria.toLowerCase();
 
       // SEARCH
       final matchesSearch =
@@ -85,7 +82,7 @@ class _MenuScreenState extends State<MenuScreen> {
           food.name.toLowerCase().contains(search) ||
           food.description.toLowerCase().contains(search);
 
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesSearch && matchesCafeteria;
     }).toList();
   }
 
@@ -93,10 +90,7 @@ class _MenuScreenState extends State<MenuScreen> {
   // ADD TO CART
   // ============================================================
 
-  void addToCart(
-    BuildContext context,
-    FoodModel food,
-  ) {
+  void addToCart(BuildContext context, FoodModel food) {
     // ----------------------------------------------------------
     // DO NOT ADD UNAVAILABLE FOOD
     // ----------------------------------------------------------
@@ -105,10 +99,8 @@ class _MenuScreenState extends State<MenuScreen> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'This food is currently unavailable.',
-          ),
+        SnackBar(
+          content: Text('This food is currently unavailable.'),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
         ),
@@ -121,10 +113,10 @@ class _MenuScreenState extends State<MenuScreen> {
     // CREATE CART ITEM
     // ----------------------------------------------------------
 
-    final cartProvider =
-        context.read<CartProvider>();
+    final cartProvider = context.read<CartProvider>();
 
     final item = CartItem(
+      menuItemId: food.id,
       name: food.name,
       price: food.price,
       quantity: 1,
@@ -141,7 +133,19 @@ class _MenuScreenState extends State<MenuScreen> {
     // Items from different cafeterias are allowed.
     // ----------------------------------------------------------
 
-    cartProvider.addItem(item);
+    final added = cartProvider.addItem(item);
+
+    if (!added) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Your cart contains items from ${cartProvider.items.first.cafeteria}. Please checkout first or clear your cart before ordering from another cafeteria.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     // ----------------------------------------------------------
     // SUCCESS MESSAGE
@@ -151,9 +155,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          '${food.name} added to cart',
-        ),
+        content: Text('${food.name} added to cart'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
       ),
@@ -164,18 +166,13 @@ class _MenuScreenState extends State<MenuScreen> {
   // SHOW FOOD DETAILS
   // ============================================================
 
-  void showFoodDetails(
-    BuildContext context,
-    FoodModel food,
-  ) {
+  void showFoodDetails(BuildContext context, FoodModel food) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: const Color(0xFFFFF9F4),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(25),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
       builder: (context) {
         return SafeArea(
@@ -184,30 +181,23 @@ class _MenuScreenState extends State<MenuScreen> {
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ==================================================
                   // IMAGE
                   // ==================================================
-
                   Center(
-                    child: food.imagePath.isNotEmpty &&
+                    child:
+                        food.imagePath.isNotEmpty &&
                             food.imagePath.startsWith('http')
                         ? ClipRRect(
-                            borderRadius:
-                                BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(18),
                             child: Image.network(
                               food.imagePath,
                               height: 180,
                               width: double.infinity,
                               fit: BoxFit.cover,
-                              errorBuilder:
-                                  (
-                                context,
-                                error,
-                                stackTrace,
-                              ) {
+                              errorBuilder: (context, error, stackTrace) {
                                 return foodPlaceholder(
                                   width: double.infinity,
                                   height: 180,
@@ -215,10 +205,7 @@ class _MenuScreenState extends State<MenuScreen> {
                               },
                             ),
                           )
-                        : foodPlaceholder(
-                            width: double.infinity,
-                            height: 180,
-                          ),
+                        : foodPlaceholder(width: double.infinity, height: 180),
                   ),
 
                   const SizedBox(height: 20),
@@ -226,7 +213,6 @@ class _MenuScreenState extends State<MenuScreen> {
                   // ==================================================
                   // NAME
                   // ==================================================
-
                   Text(
                     food.name,
                     style: const TextStyle(
@@ -240,13 +226,9 @@ class _MenuScreenState extends State<MenuScreen> {
                   // ==================================================
                   // CATEGORY
                   // ==================================================
-
                   Text(
                     food.category,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                   ),
 
                   const SizedBox(height: 10),
@@ -254,7 +236,6 @@ class _MenuScreenState extends State<MenuScreen> {
                   // ==================================================
                   // PRICE
                   // ==================================================
-
                   Text(
                     '₹${food.price.toStringAsFixed(0)}',
                     style: const TextStyle(
@@ -269,14 +250,11 @@ class _MenuScreenState extends State<MenuScreen> {
                   // ==================================================
                   // DESCRIPTION
                   // ==================================================
-
                   Text(
                     food.description.isEmpty
                         ? 'No description available.'
                         : food.description,
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
+                    style: const TextStyle(fontSize: 15),
                   ),
 
                   const SizedBox(height: 20),
@@ -284,28 +262,21 @@ class _MenuScreenState extends State<MenuScreen> {
                   // ==================================================
                   // CAFETERIA
                   // ==================================================
-
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade50,
-                      borderRadius:
-                          BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.restaurant,
-                          color: Colors.orange,
-                        ),
+                        const Icon(Icons.restaurant, color: Colors.orange),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             selectedCafeteria,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
@@ -317,7 +288,6 @@ class _MenuScreenState extends State<MenuScreen> {
                   // ==================================================
                   // AVAILABILITY
                   // ==================================================
-
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
@@ -325,18 +295,13 @@ class _MenuScreenState extends State<MenuScreen> {
                       color: food.isAvailable
                           ? Colors.green.shade50
                           : Colors.red.shade50,
-                      borderRadius:
-                          BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      food.isAvailable
-                          ? 'Available'
-                          : 'Currently Unavailable',
+                      food.isAvailable ? 'Available' : 'Currently Unavailable',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: food.isAvailable
-                            ? Colors.green
-                            : Colors.red,
+                        color: food.isAvailable ? Colors.green : Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -347,7 +312,6 @@ class _MenuScreenState extends State<MenuScreen> {
                   // ==================================================
                   // ADD TO CART
                   // ==================================================
-
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -356,35 +320,21 @@ class _MenuScreenState extends State<MenuScreen> {
                           ? () {
                               Navigator.pop(context);
 
-                              addToCart(
-                                context,
-                                food,
-                              );
+                              addToCart(context, food);
                             }
                           : null,
-                      style:
-                          ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.orange,
-                        foregroundColor:
-                            Colors.white,
-                        disabledBackgroundColor:
-                            Colors.grey.shade300,
-                        disabledForegroundColor:
-                            Colors.grey.shade600,
-                        shape:
-                            RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(12),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledForegroundColor: Colors.grey.shade600,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       child: Text(
-                        food.isAvailable
-                            ? 'ADD TO CART'
-                            : 'UNAVAILABLE',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        food.isAvailable ? 'ADD TO CART' : 'UNAVAILABLE',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -403,27 +353,15 @@ class _MenuScreenState extends State<MenuScreen> {
   // FOOD CARD
   // ============================================================
 
-  Widget foodCard(
-    BuildContext context,
-    FoodModel food,
-  ) {
+  Widget foodCard(BuildContext context, FoodModel food) {
     return Card(
       elevation: 3,
-      margin: const EdgeInsets.only(
-        bottom: 15,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(18),
-      ),
+      margin: const EdgeInsets.only(bottom: 15),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
-        borderRadius:
-            BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18),
         onTap: () {
-          showFoodDetails(
-            context,
-            food,
-          );
+          showFoodDetails(context, food);
         },
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -432,23 +370,17 @@ class _MenuScreenState extends State<MenuScreen> {
               // ==================================================
               // IMAGE
               // ==================================================
-
               ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(14),
-                child: food.imagePath.isNotEmpty &&
+                borderRadius: BorderRadius.circular(14),
+                child:
+                    food.imagePath.isNotEmpty &&
                         food.imagePath.startsWith('http')
                     ? Image.network(
                         food.imagePath,
                         width: 100,
                         height: 100,
                         fit: BoxFit.cover,
-                        errorBuilder:
-                            (
-                          context,
-                          error,
-                          stackTrace,
-                        ) {
+                        errorBuilder: (context, error, stackTrace) {
                           return foodPlaceholder();
                         },
                       )
@@ -460,21 +392,17 @@ class _MenuScreenState extends State<MenuScreen> {
               // ==================================================
               // FOOD INFORMATION
               // ==================================================
-
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       food.name,
                       maxLines: 2,
-                      overflow:
-                          TextOverflow.ellipsis,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 17,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
 
@@ -483,8 +411,7 @@ class _MenuScreenState extends State<MenuScreen> {
                     Text(
                       food.category,
                       style: TextStyle(
-                        color:
-                            Colors.grey.shade600,
+                        color: Colors.grey.shade600,
                         fontSize: 12,
                       ),
                     ),
@@ -496,8 +423,7 @@ class _MenuScreenState extends State<MenuScreen> {
                       style: const TextStyle(
                         color: Colors.green,
                         fontSize: 17,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
 
@@ -506,30 +432,22 @@ class _MenuScreenState extends State<MenuScreen> {
                     // ==================================================
                     // AVAILABILITY LABEL
                     // ==================================================
-
                     if (!food.isAvailable)
                       Container(
-                        padding:
-                            const EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 5,
                         ),
-                        decoration:
-                            BoxDecoration(
-                          color:
-                              Colors.red.shade50,
-                          borderRadius:
-                              BorderRadius.circular(
-                            8,
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
                           'UNAVAILABLE',
                           style: TextStyle(
                             color: Colors.red,
                             fontSize: 11,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -542,46 +460,29 @@ class _MenuScreenState extends State<MenuScreen> {
               // ==================================================
               // ADD BUTTON
               // ==================================================
-
               SizedBox(
                 width: 70,
                 child: ElevatedButton(
                   onPressed: food.isAvailable
                       ? () {
-                          addToCart(
-                            context,
-                            food,
-                          );
+                          addToCart(context, food);
                         }
                       : null,
-                  style:
-                      ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Colors.orange,
-                    foregroundColor:
-                        Colors.white,
-                    disabledBackgroundColor:
-                        Colors.grey.shade300,
-                    disabledForegroundColor:
-                        Colors.grey.shade600,
-                    padding:
-                        const EdgeInsets.symmetric(
-                      vertical: 10,
-                    ),
-                    shape:
-                        RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(10),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledForegroundColor: Colors.grey.shade600,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   child: Text(
-                    food.isAvailable
-                        ? 'ADD'
-                        : 'OFF',
+                    food.isAvailable ? 'ADD' : 'OFF',
                     style: const TextStyle(
                       fontSize: 12,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -597,19 +498,12 @@ class _MenuScreenState extends State<MenuScreen> {
   // PLACEHOLDER
   // ============================================================
 
-  Widget foodPlaceholder({
-    double width = 100,
-    double height = 100,
-  }) {
+  Widget foodPlaceholder({double width = 100, double height = 100}) {
     return Container(
       width: width,
       height: height,
       color: Colors.orange.shade100,
-      child: const Icon(
-        Icons.fastfood,
-        size: 45,
-        color: Colors.orange,
-      ),
+      child: const Icon(Icons.fastfood, size: 45, color: Colors.orange),
     );
   }
 
@@ -620,30 +514,22 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFFFF9F4),
+      backgroundColor: const Color(0xFFFFF9F4),
 
       // ==========================================================
       // APP BAR
       // ==========================================================
-
       appBar: AppBar(
-        title: const Text(
-          'CampusEats Menu',
-        ),
+        title: const Text('CampusEats Menu'),
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
         elevation: 0,
 
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.refresh,
-            ),
+            icon: const Icon(Icons.refresh),
             onPressed: () async {
-              await context
-                  .read<MenuProvider>()
-                  .loadMenu();
+              await context.read<MenuProvider>().loadMenu();
             },
           ),
         ],
@@ -652,24 +538,15 @@ class _MenuScreenState extends State<MenuScreen> {
       // ==========================================================
       // BODY
       // ==========================================================
-
       body: Consumer<MenuProvider>(
-        builder: (
-          context,
-          menuProvider,
-          child,
-        ) {
+        builder: (context, menuProvider, child) {
           // ========================================================
           // LOADING
           // ========================================================
 
-          if (menuProvider.isLoading &&
-              menuProvider.foods.isEmpty) {
+          if (menuProvider.isLoading && menuProvider.foods.isEmpty) {
             return const Center(
-              child:
-                  CircularProgressIndicator(
-                color: Colors.orange,
-              ),
+              child: CircularProgressIndicator(color: Colors.orange),
             );
           }
 
@@ -677,15 +554,12 @@ class _MenuScreenState extends State<MenuScreen> {
           // ERROR
           // ========================================================
 
-          if (menuProvider.error != null &&
-              menuProvider.foods.isEmpty) {
+          if (menuProvider.error != null && menuProvider.foods.isEmpty) {
             return Center(
               child: Padding(
-                padding:
-                    const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.error_outline,
@@ -693,47 +567,31 @@ class _MenuScreenState extends State<MenuScreen> {
                       color: Colors.red,
                     ),
 
-                    const SizedBox(
-                      height: 15,
-                    ),
+                    const SizedBox(height: 15),
 
                     const Text(
                       'Failed to load menu',
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight:
-                            FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10),
 
-                    Text(
-                      menuProvider.error!,
-                      textAlign:
-                          TextAlign.center,
-                    ),
+                    Text(menuProvider.error!, textAlign: TextAlign.center),
 
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
 
                     ElevatedButton(
                       onPressed: () {
-                        menuProvider
-                            .loadMenu();
+                        menuProvider.loadMenu();
                       },
-                      style:
-                          ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.orange,
-                        foregroundColor:
-                            Colors.white,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
                       ),
-                      child:
-                          const Text('RETRY'),
+                      child: const Text('RETRY'),
                     ),
                   ],
                 ),
@@ -745,10 +603,7 @@ class _MenuScreenState extends State<MenuScreen> {
           // FILTERED FOOD
           // ========================================================
 
-          final foods =
-              getFilteredFoods(
-            menuProvider.foods,
-          );
+          final foods = getFilteredFoods(menuProvider.foods);
 
           // ========================================================
           // MAIN CONTENT
@@ -757,223 +612,133 @@ class _MenuScreenState extends State<MenuScreen> {
           return RefreshIndicator(
             color: Colors.orange,
 
-            onRefresh:
-                menuProvider.loadMenu,
+            onRefresh: menuProvider.loadMenu,
 
-            child:
-                SingleChildScrollView(
-              physics:
-                  const AlwaysScrollableScrollPhysics(),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
 
-              padding:
-                  const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
 
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ==================================================
                   // CAFETERIA
                   // ==================================================
-
                   const Text(
                     'Select Cafeteria',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
 
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
 
-                  DropdownButtonFormField<
-                      String>(
-                    value:
-                        selectedCafeteria,
+                  DropdownButtonFormField<String>(
+                    value: selectedCafeteria,
 
-                    decoration:
-                        InputDecoration(
-                      border:
-                          OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(
-                          12,
-                        ),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      enabledBorder:
-                          OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(
-                          12,
-                        ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      prefixIcon:
-                          const Icon(
+                      prefixIcon: const Icon(
                         Icons.restaurant,
                         color: Colors.orange,
                       ),
                     ),
 
-                    items: cafeterias
-                        .map(
-                          (
-                            cafeteria,
-                          ) {
-                            return DropdownMenuItem<
-                                String>(
-                              value:
-                                  cafeteria,
-                              child: Text(
-                                cafeteria,
-                              ),
-                            );
-                          },
-                        )
-                        .toList(),
+                    items: cafeterias.map((cafeteria) {
+                      return DropdownMenuItem<String>(
+                        value: cafeteria,
+                        child: Text(cafeteria),
+                      );
+                    }).toList(),
 
-                    onChanged:
-                        (value) {
+                    onChanged: (value) {
                       if (value != null) {
                         setState(() {
-                          selectedCafeteria =
-                              value;
+                          selectedCafeteria = value;
                         });
                       }
                     },
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   // ==================================================
                   // SEARCH
                   // ==================================================
-
                   TextField(
-                    controller:
-                        searchController,
+                    controller: searchController,
 
                     onChanged: (_) {
                       setState(() {});
                     },
 
-                    decoration:
-                        InputDecoration(
-                      hintText:
-                          'Search food...',
+                    decoration: InputDecoration(
+                      hintText: 'Search food...',
 
-                      prefixIcon:
-                          const Icon(
-                        Icons.search,
-                      ),
+                      prefixIcon: const Icon(Icons.search),
 
-                      suffixIcon:
-                          searchController
-                                  .text
-                                  .isNotEmpty
-                              ? IconButton(
-                                  icon:
-                                      const Icon(
-                                    Icons.clear,
-                                  ),
-                                  onPressed:
-                                      () {
-                                    searchController
-                                        .clear();
+                      suffixIcon: searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                searchController.clear();
 
-                                    setState(
-                                      () {},
-                                    );
-                                  },
-                                )
-                              : null,
+                                setState(() {});
+                              },
+                            )
+                          : null,
 
-                      border:
-                          OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(
-                          14,
-                        ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   // ==================================================
                   // CATEGORIES
                   // ==================================================
-
                   SizedBox(
                     height: 45,
 
-                    child:
-                        ListView.separated(
-                      scrollDirection:
-                          Axis.horizontal,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
 
-                      itemCount:
-                          categories.length,
+                      itemCount: categories.length,
 
-                      separatorBuilder:
-                          (
-                        context,
-                        index,
-                      ) {
-                        return const SizedBox(
-                          width: 8,
-                        );
+                      separatorBuilder: (context, index) {
+                        return const SizedBox(width: 8);
                       },
 
-                      itemBuilder:
-                          (
-                        context,
-                        index,
-                      ) {
-                        final category =
-                            categories[
-                                index];
+                      itemBuilder: (context, index) {
+                        final category = categories[index];
 
-                        final selected =
-                            selectedCategory ==
-                                category;
+                        final selected = selectedCategory == category;
 
                         return ChoiceChip(
-                          label:
-                              Text(category),
+                          label: Text(category),
 
-                          selected:
-                              selected,
+                          selected: selected,
 
-                          selectedColor:
-                              Colors.orange,
+                          selectedColor: Colors.orange,
 
-                          checkmarkColor:
-                              Colors.white,
+                          checkmarkColor: Colors.white,
 
-                          labelStyle:
-                              TextStyle(
-                            color: selected
-                                ? Colors.white
-                                : Colors.black,
-                            fontWeight:
-                                selected
-                                    ? FontWeight.bold
-                                    : FontWeight
-                                        .normal,
+                          labelStyle: TextStyle(
+                            color: selected ? Colors.white : Colors.black,
+                            fontWeight: selected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
 
-                          onSelected:
-                              (_) {
+                          onSelected: (_) {
                             setState(() {
-                              selectedCategory =
-                                  category;
+                              selectedCategory = category;
                             });
                           },
                         );
@@ -981,77 +746,50 @@ class _MenuScreenState extends State<MenuScreen> {
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   // ==================================================
                   // FOOD LIST
                   // ==================================================
-
                   if (foods.isEmpty)
                     Container(
-                      width:
-                          double.infinity,
+                      width: double.infinity,
 
-                      padding:
-                          const EdgeInsets.all(
-                        40,
-                      ),
+                      padding: const EdgeInsets.all(40),
 
                       child: Column(
                         children: [
                           const Icon(
-                            Icons
-                                .restaurant_menu,
+                            Icons.restaurant_menu,
                             size: 70,
-                            color:
-                                Colors.grey,
+                            color: Colors.grey,
                           ),
 
-                          const SizedBox(
-                            height: 15,
-                          ),
+                          const SizedBox(height: 15),
 
                           const Text(
                             'No food found',
-                            style:
-                                TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
-                              fontWeight:
-                                  FontWeight
-                                      .bold,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
 
-                          const SizedBox(
-                            height: 5,
-                          ),
+                          const SizedBox(height: 5),
 
                           Text(
                             'Try another category or search.',
-                            style: TextStyle(
-                              color: Colors
-                                  .grey
-                                  .shade600,
-                            ),
+                            style: TextStyle(color: Colors.grey.shade600),
                           ),
                         ],
                       ),
                     )
                   else
-                    ...foods.map(
-                      (food) {
-                        return foodCard(
-                          context,
-                          food,
-                        );
-                      },
-                    ),
+                    ...foods.map((food) {
+                      return foodCard(context, food);
+                    }),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
 
 class ReportsScreen extends StatelessWidget {
@@ -14,22 +15,16 @@ class ReportsScreen extends StatelessWidget {
 
     final totalOrders = orders.length;
 
-    final preparingOrders = orders
-        .where((order) => order.status == "Preparing")
-        .length;
+    final preparingOrders = orderProvider.getOrdersByStatus('Preparing').length;
 
-    final readyOrders = orders
-        .where((order) => order.status == "Ready for Pickup")
-        .length;
+    final readyOrders = orderProvider.getOrdersByStatus('Ready').length;
 
-    final completedOrders = orders
-        .where((order) => order.status == "Completed")
-        .length;
+    final completedOrders = orderProvider.getOrdersByStatus('Completed').length;
 
     double totalRevenue = 0;
 
     for (final order in orders) {
-      totalRevenue += order.total;
+      totalRevenue += OrderModel.fromMap(order).total;
     }
 
     return Scaffold(
@@ -100,9 +95,7 @@ class ReportsScreen extends StatelessWidget {
     return Card(
       elevation: 4,
 
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
 
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -113,27 +106,19 @@ class ReportsScreen extends StatelessWidget {
               radius: 30,
               backgroundColor: color.withOpacity(0.15),
 
-              child: Icon(
-                icon,
-                size: 32,
-                color: color,
-              ),
+              child: Icon(icon, size: 32, color: color),
             ),
 
             const SizedBox(width: 20),
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
 
                   const SizedBox(height: 5),

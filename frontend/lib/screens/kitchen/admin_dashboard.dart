@@ -6,6 +6,9 @@ import 'orders_screen.dart';
 import 'kitchen_dashboard.dart';
 import 'reports_screen.dart';
 import 'analytics_screen.dart';
+import '../../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../../providers/order_provider.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -29,104 +32,69 @@ class AdminDashboard extends StatelessWidget {
         elevation: 4,
         margin: EdgeInsets.zero,
 
-        shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
 
         child: Container(
           width: double.infinity,
 
-          padding:
-              const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(14),
 
-          decoration:
-              BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
 
-            color:
-                color.withOpacity(0.08),
+            color: color.withOpacity(0.08),
 
-            border: Border.all(
-              color:
-                  color.withOpacity(0.12),
-            ),
+            border: Border.all(color: color.withOpacity(0.12)),
           ),
 
           child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
 
-            mainAxisSize:
-                MainAxisSize.min,
+            mainAxisSize: MainAxisSize.min,
 
             children: [
               Container(
                 height: 52,
                 width: 52,
 
-                decoration:
-                    BoxDecoration(
-                  color:
-                      color.withOpacity(0.14),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.14),
 
-                  borderRadius:
-                      BorderRadius.circular(
-                    16,
-                  ),
+                  borderRadius: BorderRadius.circular(16),
                 ),
 
-                child: Icon(
-                  icon,
-                  size: 28,
-                  color: color,
-                ),
+                child: Icon(icon, size: 28, color: color),
               ),
 
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
 
               Text(
                 title,
 
-                textAlign:
-                    TextAlign.center,
+                textAlign: TextAlign.center,
 
                 maxLines: 2,
 
-                overflow:
-                    TextOverflow.ellipsis,
+                overflow: TextOverflow.ellipsis,
 
-                style:
-                    const TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
-                  fontWeight:
-                      FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(
-                height: 5,
-              ),
+              const SizedBox(height: 5),
 
               Text(
                 subtitle,
 
-                textAlign:
-                    TextAlign.center,
+                textAlign: TextAlign.center,
 
                 maxLines: 2,
 
-                overflow:
-                    TextOverflow.ellipsis,
+                overflow: TextOverflow.ellipsis,
 
-                style: TextStyle(
-                  fontSize: 12,
-                  color:
-                      Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
           ),
@@ -140,24 +108,19 @@ class AdminDashboard extends StatelessWidget {
   // ==========================
 
   Widget welcomeCard() {
+    final cafeteria = ApiService.adminCafeteria ?? 'Cafeteria';
+    final title = ApiService.adminTitle ?? 'Cafeteria Admin';
     return Container(
       width: double.infinity,
 
-      padding:
-          const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
 
-      decoration:
-          BoxDecoration(
-        gradient:
-            const LinearGradient(
-          colors: [
-            Colors.orange,
-            Colors.deepOrange,
-          ],
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.orange, Colors.deepOrange],
         ),
 
-        borderRadius:
-            BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(24),
       ),
 
       child: Row(
@@ -166,11 +129,8 @@ class AdminDashboard extends StatelessWidget {
             height: 58,
             width: 58,
 
-            decoration:
-                BoxDecoration(
-              color:
-                  Colors.white
-                      .withOpacity(0.20),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.20),
 
               shape: BoxShape.circle,
             ),
@@ -182,39 +142,29 @@ class AdminDashboard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(
-            width: 15,
-          ),
+          const SizedBox(width: 15),
 
-          const Expanded(
+          Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Text(
-                  "Welcome, Admin 👋",
+                  "Welcome, $title",
 
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 21,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                SizedBox(
-                  height: 5,
-                ),
+                SizedBox(height: 5),
 
                 Text(
-                  "Manage CampusEats from one place.",
+                  cafeteria,
 
-                  style: TextStyle(
-                    color:
-                        Colors.white70,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
             ),
@@ -228,38 +178,23 @@ class AdminDashboard extends StatelessWidget {
   // SECTION TITLE
   // ==========================
 
-  Widget sectionTitle(
-    String title,
-    String subtitle,
-  ) {
+  Widget sectionTitle(String title, String subtitle) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
 
       children: [
         Text(
           title,
 
-          style:
-              const TextStyle(
-            fontSize: 21,
-            fontWeight:
-                FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
         ),
 
-        const SizedBox(
-          height: 4,
-        ),
+        const SizedBox(height: 4),
 
         Text(
           subtitle,
 
-          style: TextStyle(
-            fontSize: 13,
-            color:
-                Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
         ),
       ],
     );
@@ -270,40 +205,29 @@ class AdminDashboard extends StatelessWidget {
   // ==========================
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFFFF9F4),
+      backgroundColor: const Color(0xFFFFF9F4),
 
       // ==========================
       // APP BAR
       // ==========================
-
       appBar: AppBar(
         elevation: 0,
 
-        backgroundColor:
-            Colors.orange,
+        backgroundColor: Colors.orange,
 
-        foregroundColor:
-            Colors.white,
+        foregroundColor: Colors.white,
 
         title: const Text(
           "Admin Dashboard",
 
-          style: TextStyle(
-            fontWeight:
-                FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
 
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.notifications_none,
-            ),
+            icon: const Icon(Icons.notifications_none),
 
             onPressed: () {},
           ),
@@ -313,36 +237,75 @@ class AdminDashboard extends StatelessWidget {
       // ==========================
       // BODY
       // ==========================
-
       body: SafeArea(
-        child:
-            SingleChildScrollView(
-          padding:
-              const EdgeInsets.all(18),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(18),
 
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
               welcomeCard(),
 
-              const SizedBox(
-                height: 25,
+              const SizedBox(height: 25),
+
+              Consumer<OrderProvider>(
+                builder: (context, provider, child) {
+                  final cafeteria = ApiService.adminCafeteria;
+                  final orders = cafeteria == null
+                      ? provider.orders
+                      : provider.orders
+                            .where(
+                              (order) =>
+                                  provider.getCafeteria(order) == cafeteria,
+                            )
+                            .toList();
+                  int count(String status) => orders
+                      .where((order) => provider.getStatus(order) == status)
+                      .length;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${cafeteria ?? 'Cafeteria'} Orders',
+                        style: const TextStyle(
+                          fontSize: 21,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _summary(
+                            'New',
+                            count('Confirmed'),
+                            Colors.deepOrange,
+                          ),
+                          _summary(
+                            'Preparing',
+                            count('Preparing'),
+                            Colors.orange,
+                          ),
+                          _summary('Ready', count('Ready'), Colors.blue),
+                          _summary(
+                            'Completed',
+                            count('Completed'),
+                            Colors.green,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 25),
+                    ],
+                  );
+                },
               ),
 
               // ==========================
               // OVERVIEW
               // ==========================
+              sectionTitle("Overview", "Manage your CampusEats system"),
 
-              sectionTitle(
-                "Overview",
-                "Manage your CampusEats system",
-              ),
-
-              const SizedBox(
-                height: 15,
-              ),
+              const SizedBox(height: 15),
 
               GridView.count(
                 crossAxisCount: 2,
@@ -355,12 +318,10 @@ class AdminDashboard extends StatelessWidget {
 
                 shrinkWrap: true,
 
-                physics:
-                    const NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
 
                 children: [
                   // ADD FOOD
-
                   dashboardCard(
                     context,
                     Icons.fastfood,
@@ -371,16 +332,13 @@ class AdminDashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const AddFoodScreen(),
+                          builder: (context) => const AddFoodScreen(),
                         ),
                       );
                     },
                   ),
 
                   // MANAGE MENU
-
                   dashboardCard(
                     context,
                     Icons.restaurant_menu,
@@ -391,16 +349,13 @@ class AdminDashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const ManageMenuScreen(),
+                          builder: (context) => const ManageMenuScreen(),
                         ),
                       );
                     },
                   ),
 
                   // ORDERS
-
                   dashboardCard(
                     context,
                     Icons.receipt_long,
@@ -411,16 +366,13 @@ class AdminDashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const OrdersScreen(),
+                          builder: (context) => const OrdersScreen(),
                         ),
                       );
                     },
                   ),
 
                   // KITCHEN
-
                   dashboardCard(
                     context,
                     Icons.restaurant,
@@ -431,16 +383,13 @@ class AdminDashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const KitchenDashboard(),
+                          builder: (context) => const KitchenDashboard(),
                         ),
                       );
                     },
                   ),
 
                   // REPORTS
-
                   dashboardCard(
                     context,
                     Icons.bar_chart,
@@ -451,16 +400,13 @@ class AdminDashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  ReportsScreen(),
+                          builder: (context) => ReportsScreen(),
                         ),
                       );
                     },
                   ),
 
                   // ANALYTICS
-
                   dashboardCard(
                     context,
                     Icons.analytics,
@@ -471,9 +417,7 @@ class AdminDashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const AnalyticsScreen(),
+                          builder: (context) => const AnalyticsScreen(),
                         ),
                       );
                     },
@@ -481,175 +425,143 @@ class AdminDashboard extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(
-                height: 28,
-              ),
+              const SizedBox(height: 28),
 
               // ==========================
               // QUICK MANAGEMENT
               // ==========================
+              sectionTitle("Quick Management", "Frequently used admin actions"),
 
-              sectionTitle(
-                "Quick Management",
-                "Frequently used admin actions",
-              ),
-
-              const SizedBox(
-                height: 14,
-              ),
+              const SizedBox(height: 14),
 
               // ADD FOOD
-
               _quickAction(
-                icon:
-                    Icons.add_circle_outline,
+                icon: Icons.add_circle_outline,
 
                 title: "Add Food",
 
-                subtitle:
-                    "Add a new food item to the campus menu",
+                subtitle: "Add a new food item to the campus menu",
 
-                color:
-                    Colors.orange,
+                color: Colors.orange,
 
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              const AddFoodScreen(),
+                      builder: (context) => const AddFoodScreen(),
                     ),
                   );
                 },
               ),
 
-              const SizedBox(
-                height: 12,
-              ),
+              const SizedBox(height: 12),
 
               // MANAGE MENU
-
               _quickAction(
-                icon:
-                    Icons.restaurant_menu,
+                icon: Icons.restaurant_menu,
 
                 title: "Manage Menu",
 
-                subtitle:
-                    "Update food, prices and availability",
+                subtitle: "Update food, prices and availability",
 
-                color:
-                    Colors.green,
+                color: Colors.green,
 
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              const ManageMenuScreen(),
+                      builder: (context) => const ManageMenuScreen(),
                     ),
                   );
                 },
               ),
 
-              const SizedBox(
-                height: 12,
-              ),
+              const SizedBox(height: 12),
 
               // ORDERS
-
               _quickAction(
-                icon:
-                    Icons.receipt_long,
+                icon: Icons.receipt_long,
 
                 title: "Manage Orders",
 
-                subtitle:
-                    "Check and manage student orders",
+                subtitle: "Check and manage student orders",
 
-                color:
-                    Colors.blue,
+                color: Colors.blue,
 
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              const OrdersScreen(),
+                      builder: (context) => const OrdersScreen(),
                     ),
                   );
                 },
               ),
 
-              const SizedBox(
-                height: 12,
-              ),
+              const SizedBox(height: 12),
 
               // KITCHEN
-
               _quickAction(
-                icon:
-                    Icons.restaurant,
+                icon: Icons.restaurant,
 
                 title: "Kitchen Control",
 
-                subtitle:
-                    "Monitor preparation and pickup",
+                subtitle: "Monitor preparation and pickup",
 
-                color:
-                    Colors.deepOrange,
+                color: Colors.deepOrange,
 
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              const KitchenDashboard(),
+                      builder: (context) => const KitchenDashboard(),
                     ),
                   );
                 },
               ),
 
-              const SizedBox(
-                height: 12,
-              ),
+              const SizedBox(height: 12),
 
               // REPORTS
-
               _quickAction(
-                icon:
-                    Icons.bar_chart,
+                icon: Icons.bar_chart,
 
                 title: "Reports",
 
-                subtitle:
-                    "Check sales and order statistics",
+                subtitle: "Check sales and order statistics",
 
-                color:
-                    Colors.purple,
+                color: Colors.purple,
 
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              ReportsScreen(),
-                    ),
+                    MaterialPageRoute(builder: (context) => ReportsScreen()),
                   );
                 },
               ),
 
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _summary(String label, int value, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            '$value',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(label, style: const TextStyle(fontSize: 12)),
+        ],
       ),
     );
   }
@@ -668,24 +580,17 @@ class AdminDashboard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
 
-      borderRadius:
-          BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(18),
 
       child: Container(
-        padding:
-            const EdgeInsets.all(15),
+        padding: const EdgeInsets.all(15),
 
-        decoration:
-            BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
 
-          borderRadius:
-              BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(18),
 
-          border: Border.all(
-            color:
-                Colors.grey.shade200,
-          ),
+          border: Border.all(color: Colors.grey.shade200),
         ),
 
         child: Row(
@@ -694,61 +599,41 @@ class AdminDashboard extends StatelessWidget {
               height: 48,
               width: 48,
 
-              decoration:
-                  BoxDecoration(
-                color:
-                    color.withOpacity(0.12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
 
-                borderRadius:
-                    BorderRadius.circular(
-                  14,
-                ),
+                borderRadius: BorderRadius.circular(14),
               ),
 
-              child: Icon(
-                icon,
-                color: color,
-              ),
+              child: Icon(icon, color: color),
             ),
 
-            const SizedBox(
-              width: 14,
-            ),
+            const SizedBox(width: 14),
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   Text(
                     title,
 
-                    style:
-                        const TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 4,
-                  ),
+                  const SizedBox(height: 4),
 
                   Text(
                     subtitle,
 
                     maxLines: 1,
 
-                    overflow:
-                        TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
 
-                    style: TextStyle(
-                      fontSize: 12,
-                      color:
-                          Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -757,8 +642,7 @@ class AdminDashboard extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color:
-                  Colors.grey.shade500,
+              color: Colors.grey.shade500,
             ),
           ],
         ),

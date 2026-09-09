@@ -4,8 +4,7 @@ import '../models/cart_item.dart';
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
 
-  List<CartItem> get items =>
-      List.unmodifiable(_items);
+  List<CartItem> get items => List.unmodifiable(_items);
 
   // ============================================================
   // NUMBER OF ITEMS
@@ -39,11 +38,14 @@ class CartProvider extends ChangeNotifier {
   // ADD ITEM
   // ============================================================
 
-  void addItem(CartItem item) {
+  bool addItem(CartItem item) {
+    if (_items.isNotEmpty && _items.first.cafeteria != item.cafeteria) {
+      return false;
+    }
+
     final index = _items.indexWhere(
       (existing) =>
-          existing.name == item.name &&
-          existing.cafeteria == item.cafeteria,
+          existing.name == item.name && existing.cafeteria == item.cafeteria,
     );
 
     if (index != -1) {
@@ -53,6 +55,7 @@ class CartProvider extends ChangeNotifier {
     }
 
     notifyListeners();
+    return true;
   }
 
   // ============================================================

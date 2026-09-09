@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/order_provider.dart';
+import '../../services/api_service.dart';
+import '../auth/login_screen.dart';
 
 import 'orders_screen.dart';
 import 'preparing_orders.dart';
@@ -12,13 +14,10 @@ class KitchenDashboard extends StatefulWidget {
   const KitchenDashboard({super.key});
 
   @override
-  State<KitchenDashboard> createState() =>
-      _KitchenDashboardState();
+  State<KitchenDashboard> createState() => _KitchenDashboardState();
 }
 
-class _KitchenDashboardState
-    extends State<KitchenDashboard> {
-
+class _KitchenDashboardState extends State<KitchenDashboard> {
   // ============================================================
   // LOAD ORDERS
   // ============================================================
@@ -28,8 +27,24 @@ class _KitchenDashboardState
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderProvider>().loadOrders();
+      _loadAuthenticatedOrders();
     });
+  }
+
+  Future<void> _loadAuthenticatedOrders() async {
+    if (ApiService.demoMode && ApiService.adminToken == null) {
+      ApiService.startDemoKitchenSession();
+    }
+    final hasSession = await ApiService.restoreAdminSession();
+    if (!mounted) return;
+    if (!hasSession) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen(role: 'Admin')),
+      );
+      return;
+    }
+    await context.read<OrderProvider>().loadOrders();
   }
 
   // ============================================================
@@ -53,53 +68,36 @@ class _KitchenDashboardState
 
         margin: EdgeInsets.zero,
 
-        shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
 
         child: Container(
           width: double.infinity,
 
-          padding:
-              const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(14),
 
           decoration: BoxDecoration(
-            borderRadius:
-                BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20),
 
-            color:
-                color.withOpacity(0.08),
+            color: color.withOpacity(0.08),
 
-            border: Border.all(
-              color:
-                  color.withOpacity(0.12),
-            ),
+            border: Border.all(color: color.withOpacity(0.12)),
           ),
 
           child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
 
             children: [
               Container(
                 height: 52,
                 width: 52,
 
-                decoration:
-                    BoxDecoration(
-                  color:
-                      color.withOpacity(0.14),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.14),
 
-                  borderRadius:
-                      BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(16),
                 ),
 
-                child: Icon(
-                  icon,
-                  size: 28,
-                  color: color,
-                ),
+                child: Icon(icon, size: 28, color: color),
               ),
 
               const SizedBox(height: 10),
@@ -109,8 +107,7 @@ class _KitchenDashboardState
 
                 style: TextStyle(
                   fontSize: 25,
-                  fontWeight:
-                      FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                   color: color,
                 ),
               ),
@@ -120,19 +117,15 @@ class _KitchenDashboardState
               Text(
                 title,
 
-                textAlign:
-                    TextAlign.center,
+                textAlign: TextAlign.center,
 
                 maxLines: 2,
 
-                overflow:
-                    TextOverflow.ellipsis,
+                overflow: TextOverflow.ellipsis,
 
-                style:
-                    const TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
-                  fontWeight:
-                      FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
 
@@ -141,19 +134,13 @@ class _KitchenDashboardState
               Text(
                 subtitle,
 
-                textAlign:
-                    TextAlign.center,
+                textAlign: TextAlign.center,
 
                 maxLines: 2,
 
-                overflow:
-                    TextOverflow.ellipsis,
+                overflow: TextOverflow.ellipsis,
 
-                style: TextStyle(
-                  fontSize: 12,
-                  color:
-                      Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
           ),
@@ -170,21 +157,14 @@ class _KitchenDashboardState
     return Container(
       width: double.infinity,
 
-      padding:
-          const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
 
-      decoration:
-          BoxDecoration(
-        gradient:
-            const LinearGradient(
-          colors: [
-            Colors.orange,
-            Colors.deepOrange,
-          ],
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.orange, Colors.deepOrange],
         ),
 
-        borderRadius:
-            BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(24),
       ),
 
       child: Row(
@@ -193,30 +173,20 @@ class _KitchenDashboardState
             height: 58,
             width: 58,
 
-            decoration:
-                BoxDecoration(
-              color:
-                  Colors.white.withOpacity(
-                0.20,
-              ),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.20),
 
-              shape:
-                  BoxShape.circle,
+              shape: BoxShape.circle,
             ),
 
-            child: const Icon(
-              Icons.restaurant,
-              color: Colors.white,
-              size: 30,
-            ),
+            child: const Icon(Icons.restaurant, color: Colors.white, size: 30),
           ),
 
           const SizedBox(width: 15),
 
           const Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 Text(
@@ -225,8 +195,7 @@ class _KitchenDashboardState
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 21,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
 
@@ -235,10 +204,7 @@ class _KitchenDashboardState
                 Text(
                   "Manage today's campus orders",
 
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
             ),
@@ -252,24 +218,15 @@ class _KitchenDashboardState
   // SECTION TITLE
   // ============================================================
 
-  Widget sectionTitle(
-    String title,
-    String subtitle,
-  ) {
+  Widget sectionTitle(String title, String subtitle) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
 
       children: [
         Text(
           title,
 
-          style:
-              const TextStyle(
-            fontSize: 21,
-            fontWeight:
-                FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
         ),
 
         const SizedBox(height: 4),
@@ -277,11 +234,7 @@ class _KitchenDashboardState
         Text(
           subtitle,
 
-          style: TextStyle(
-            fontSize: 13,
-            color:
-                Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
         ),
       ],
     );
@@ -294,124 +247,86 @@ class _KitchenDashboardState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFFFF9F4),
+      backgroundColor: const Color(0xFFFFF9F4),
 
       appBar: AppBar(
         elevation: 0,
 
-        backgroundColor:
-            Colors.orange,
+        backgroundColor: Colors.orange,
 
-        foregroundColor:
-            Colors.white,
+        foregroundColor: Colors.white,
 
         title: const Text(
           'Kitchen Dashboard',
 
-          style: TextStyle(
-            fontWeight:
-                FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
 
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
 
             onPressed: () {
-              context
-                  .read<OrderProvider>()
-                  .loadOrders();
+              context.read<OrderProvider>().loadOrders();
             },
           ),
         ],
       ),
 
       body: Consumer<OrderProvider>(
-        builder: (
-          context,
-          orderProvider,
-          child,
-        ) {
+        builder: (context, orderProvider, child) {
           // ======================================================
           // COUNTS
           // ======================================================
 
-          final orders =
-              orderProvider.orders;
+          final orders = orderProvider.orders;
 
-          final totalOrders =
-              orders.length;
+          final totalOrders = orders.length;
 
-          final confirmedOrders =
-              orderProvider
-                  .getOrdersByStatus(
-                'Confirmed',
-              )
-                  .length;
+          final confirmedOrders = orderProvider
+              .getOrdersByStatus('Confirmed')
+              .length;
 
-          final preparingOrders =
-              orderProvider
-                  .getOrdersByStatus(
-                'Preparing',
-              )
-                  .length;
+          final preparingOrders = orderProvider
+              .getOrdersByStatus('Preparing')
+              .length;
 
-          final readyOrders =
-              orderProvider
-                  .getOrdersByStatus(
-                'Ready',
-              )
-                  .length;
+          final readyOrders = orderProvider.getOrdersByStatus('Ready').length;
 
-          final completedOrders =
-              orderProvider
-                  .getOrdersByStatus(
-                'Completed',
-              )
-                  .length;
+          final completedOrders = orderProvider
+              .getOrdersByStatus('Completed')
+              .length;
 
           return RefreshIndicator(
             color: Colors.orange,
 
             onRefresh: () async {
-              await orderProvider
-                  .loadOrders();
+              await orderProvider.loadOrders();
             },
 
             child: SingleChildScrollView(
-              physics:
-                  const AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
 
-              padding:
-                  const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(18),
 
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   topWelcomeCard(),
 
-                  const SizedBox(
-                    height: 25,
-                  ),
+                  const SizedBox(height: 25),
 
                   sectionTitle(
                     "Today's Orders",
                     'Live order status from your database',
                   ),
 
-                  const SizedBox(
-                    height: 15,
-                  ),
+                  const SizedBox(height: 15),
 
                   // ==================================================
                   // ORDER CARDS
                   // ==================================================
-
                   GridView.count(
                     crossAxisCount: 2,
 
@@ -423,14 +338,12 @@ class _KitchenDashboardState
 
                     shrinkWrap: true,
 
-                    physics:
-                        const NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
 
                     children: [
                       // ==================================================
                       // NEW / CONFIRMED
                       // ==================================================
-
                       dashboardCard(
                         context,
 
@@ -440,8 +353,7 @@ class _KitchenDashboardState
 
                         'Incoming orders',
 
-                        confirmedOrders
-                            .toString(),
+                        confirmedOrders.toString(),
 
                         Colors.deepOrange,
 
@@ -450,9 +362,7 @@ class _KitchenDashboardState
                             context,
 
                             MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      const OrdersScreen(),
+                              builder: (context) => const OrdersScreen(),
                             ),
                           );
                         },
@@ -461,19 +371,16 @@ class _KitchenDashboardState
                       // ==================================================
                       // PREPARING
                       // ==================================================
-
                       dashboardCard(
                         context,
 
-                        Icons
-                            .local_fire_department,
+                        Icons.local_fire_department,
 
                         'Preparing',
 
                         'Orders being cooked',
 
-                        preparingOrders
-                            .toString(),
+                        preparingOrders.toString(),
 
                         Colors.orange,
 
@@ -482,9 +389,7 @@ class _KitchenDashboardState
                             context,
 
                             MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      const PreparingOrders(),
+                              builder: (context) => const PreparingOrders(),
                             ),
                           );
                         },
@@ -493,19 +398,16 @@ class _KitchenDashboardState
                       // ==================================================
                       // READY
                       // ==================================================
-
                       dashboardCard(
                         context,
 
-                        Icons
-                            .notifications_active,
+                        Icons.notifications_active,
 
                         'Ready',
 
                         'Ready for pickup',
 
-                        readyOrders
-                            .toString(),
+                        readyOrders.toString(),
 
                         Colors.blue,
 
@@ -514,9 +416,7 @@ class _KitchenDashboardState
                             context,
 
                             MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      const ReadyOrders(),
+                              builder: (context) => const ReadyOrders(),
                             ),
                           );
                         },
@@ -525,7 +425,6 @@ class _KitchenDashboardState
                       // ==================================================
                       // COMPLETED
                       // ==================================================
-
                       dashboardCard(
                         context,
 
@@ -535,8 +434,7 @@ class _KitchenDashboardState
 
                         'Finished orders',
 
-                        completedOrders
-                            .toString(),
+                        completedOrders.toString(),
 
                         Colors.green,
 
@@ -545,9 +443,7 @@ class _KitchenDashboardState
                             context,
 
                             MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      const CompletedOrders(),
+                              builder: (context) => const CompletedOrders(),
                             ),
                           );
                         },
@@ -555,35 +451,22 @@ class _KitchenDashboardState
                     ],
                   ),
 
-                  const SizedBox(
-                    height: 28,
-                  ),
+                  const SizedBox(height: 28),
 
                   // ==================================================
                   // TOTAL ORDERS
                   // ==================================================
-
                   Container(
-                    width:
-                        double.infinity,
+                    width: double.infinity,
 
-                    padding:
-                        const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(18),
 
-                    decoration:
-                        BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.white,
 
-                      borderRadius:
-                          BorderRadius.circular(
-                        18,
-                      ),
+                      borderRadius: BorderRadius.circular(18),
 
-                      border:
-                          Border.all(
-                        color:
-                            Colors.grey.shade200,
-                      ),
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
 
                     child: Row(
@@ -592,62 +475,42 @@ class _KitchenDashboardState
                           height: 50,
                           width: 50,
 
-                          decoration:
-                              BoxDecoration(
-                            color:
-                                Colors.orange
-                                    .withOpacity(
-                              0.12,
-                            ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.12),
 
-                            borderRadius:
-                                BorderRadius.circular(
-                              14,
-                            ),
+                            borderRadius: BorderRadius.circular(14),
                           ),
 
-                          child:
-                              const Icon(
+                          child: const Icon(
                             Icons.receipt_long,
 
-                            color:
-                                Colors.orange,
+                            color: Colors.orange,
                           ),
                         ),
 
-                        const SizedBox(
-                          width: 14,
-                        ),
+                        const SizedBox(width: 14),
 
                         Expanded(
                           child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
 
                             children: [
                               const Text(
                                 'Total Orders',
 
-                                style:
-                                    TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
-                                  fontWeight:
-                                      FontWeight.bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
 
-                              const SizedBox(
-                                height: 4,
-                              ),
+                              const SizedBox(height: 4),
 
                               Text(
                                 '$totalOrders orders in database',
 
-                                style:
-                                    TextStyle(
-                                  color:
-                                      Colors.grey.shade600,
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
                                   fontSize: 13,
                                 ),
                               ),
@@ -656,170 +519,123 @@ class _KitchenDashboardState
                         ),
 
                         Text(
-                          totalOrders
-                              .toString(),
+                          totalOrders.toString(),
 
-                          style:
-                              const TextStyle(
+                          style: const TextStyle(
                             fontSize: 28,
-                            fontWeight:
-                                FontWeight.bold,
-                            color:
-                                Colors.orange,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 28,
-                  ),
+                  const SizedBox(height: 28),
 
-                  sectionTitle(
-                    'Quick Actions',
-                    'Common kitchen operations',
-                  ),
+                  sectionTitle('Quick Actions', 'Common kitchen operations'),
 
-                  const SizedBox(
-                    height: 14,
-                  ),
+                  const SizedBox(height: 14),
 
                   // ==================================================
                   // ALL ORDERS
                   // ==================================================
-
                   _quickAction(
-                    icon:
-                        Icons.receipt_long,
+                    icon: Icons.receipt_long,
 
-                    title:
-                        'All Orders',
+                    title: 'All Orders',
 
-                    subtitle:
-                        'View all orders',
+                    subtitle: 'View all orders',
 
-                    color:
-                        Colors.deepOrange,
+                    color: Colors.deepOrange,
 
                     onTap: () {
                       Navigator.push(
                         context,
 
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const OrdersScreen(),
+                          builder: (context) => const OrdersScreen(),
                         ),
                       );
                     },
                   ),
 
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
 
                   // ==================================================
                   // PREPARING
                   // ==================================================
-
                   _quickAction(
-                    icon:
-                        Icons.restaurant_menu,
+                    icon: Icons.restaurant_menu,
 
-                    title:
-                        'Preparing Orders',
+                    title: 'Preparing Orders',
 
-                    subtitle:
-                        'Manage food preparation',
+                    subtitle: 'Manage food preparation',
 
-                    color:
-                        Colors.orange,
+                    color: Colors.orange,
 
                     onTap: () {
                       Navigator.push(
                         context,
 
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const PreparingOrders(),
+                          builder: (context) => const PreparingOrders(),
                         ),
                       );
                     },
                   ),
 
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
 
                   // ==================================================
                   // READY
                   // ==================================================
-
                   _quickAction(
-                    icon:
-                        Icons.notifications_active,
+                    icon: Icons.notifications_active,
 
-                    title:
-                        'Ready for Pickup',
+                    title: 'Ready for Pickup',
 
-                    subtitle:
-                        'View ready orders',
+                    subtitle: 'View ready orders',
 
-                    color:
-                        Colors.blue,
+                    color: Colors.blue,
 
                     onTap: () {
                       Navigator.push(
                         context,
 
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const ReadyOrders(),
+                          builder: (context) => const ReadyOrders(),
                         ),
                       );
                     },
                   ),
 
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
 
                   // ==================================================
                   // COMPLETED
                   // ==================================================
-
                   _quickAction(
-                    icon:
-                        Icons.history,
+                    icon: Icons.history,
 
-                    title:
-                        'Completed Orders',
+                    title: 'Completed Orders',
 
-                    subtitle:
-                        'View completed orders',
+                    subtitle: 'View completed orders',
 
-                    color:
-                        Colors.green,
+                    color: Colors.green,
 
                     onTap: () {
                       Navigator.push(
                         context,
 
                         MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  const CompletedOrders(),
+                          builder: (context) => const CompletedOrders(),
                         ),
                       );
                     },
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -843,24 +659,17 @@ class _KitchenDashboardState
     return InkWell(
       onTap: onTap,
 
-      borderRadius:
-          BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(18),
 
       child: Container(
-        padding:
-            const EdgeInsets.all(15),
+        padding: const EdgeInsets.all(15),
 
-        decoration:
-            BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
 
-          borderRadius:
-              BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(18),
 
-          border: Border.all(
-            color:
-                Colors.grey.shade200,
-          ),
+          border: Border.all(color: Colors.grey.shade200),
         ),
 
         child: Row(
@@ -869,61 +678,41 @@ class _KitchenDashboardState
               height: 48,
               width: 48,
 
-              decoration:
-                  BoxDecoration(
-                color:
-                    color.withOpacity(0.12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
 
-                borderRadius:
-                    BorderRadius.circular(
-                  14,
-                ),
+                borderRadius: BorderRadius.circular(14),
               ),
 
-              child: Icon(
-                icon,
-                color: color,
-              ),
+              child: Icon(icon, color: color),
             ),
 
-            const SizedBox(
-              width: 14,
-            ),
+            const SizedBox(width: 14),
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
                   Text(
                     title,
 
-                    style:
-                        const TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 4,
-                  ),
+                  const SizedBox(height: 4),
 
                   Text(
                     subtitle,
 
                     maxLines: 1,
 
-                    overflow:
-                        TextOverflow.ellipsis,
+                    overflow: TextOverflow.ellipsis,
 
-                    style: TextStyle(
-                      fontSize: 12,
-                      color:
-                          Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -932,8 +721,7 @@ class _KitchenDashboardState
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color:
-                  Colors.grey.shade500,
+              color: Colors.grey.shade500,
             ),
           ],
         ),

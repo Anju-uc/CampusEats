@@ -9,11 +9,9 @@ class CompletedOrders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider =
-        Provider.of<OrderProvider>(context);
+    final orderProvider = Provider.of<OrderProvider>(context);
 
-    final orders =
-        orderProvider.getOrdersByStatus("Completed");
+    final orders = orderProvider.getOrdersByStatus("Completed");
 
     return Scaffold(
       appBar: AppBar(
@@ -24,23 +22,15 @@ class CompletedOrders extends StatelessWidget {
       body: orders.isEmpty
           ? const Center(
               child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: 80,
-                    color: Colors.green,
-                  ),
+                  Icon(Icons.check_circle, size: 80, color: Colors.green),
 
                   SizedBox(height: 15),
 
                   Text(
                     "No completed orders",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -50,25 +40,21 @@ class CompletedOrders extends StatelessWidget {
               itemCount: orders.length,
 
               itemBuilder: (context, index) {
-                final OrderModel order = orders[index];
+                final order = OrderModel.fromMap(orders[index]);
 
                 return Card(
                   elevation: 4,
-                  margin: const EdgeInsets.only(
-                    bottom: 15,
-                  ),
+                  margin: const EdgeInsets.only(bottom: 15),
 
                   child: Padding(
                     padding: const EdgeInsets.all(16),
 
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
 
                       children: [
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                           children: [
                             Expanded(
@@ -76,32 +62,27 @@ class CompletedOrders extends StatelessWidget {
                                 order.foodName,
                                 style: const TextStyle(
                                   fontSize: 20,
-                                  fontWeight:
-                                      FontWeight.bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
 
                             Container(
-                              padding:
-                                  const EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 6,
                               ),
 
                               decoration: BoxDecoration(
-                                color:
-                                    Colors.green.shade100,
-                                borderRadius:
-                                    BorderRadius.circular(20),
+                                color: Colors.green.shade100,
+                                borderRadius: BorderRadius.circular(20),
                               ),
 
                               child: const Text(
                                 "Completed",
                                 style: TextStyle(
                                   color: Colors.green,
-                                  fontWeight:
-                                      FontWeight.bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -112,9 +93,7 @@ class CompletedOrders extends StatelessWidget {
 
                         Text(
                           "Date: ${order.date}",
-                          style: const TextStyle(
-                            color: Colors.grey,
-                          ),
+                          style: const TextStyle(color: Colors.grey),
                         ),
 
                         const SizedBox(height: 10),
@@ -124,8 +103,7 @@ class CompletedOrders extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 18,
                             color: Colors.green,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
 
@@ -133,10 +111,7 @@ class CompletedOrders extends StatelessWidget {
 
                         const Row(
                           children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                            ),
+                            Icon(Icons.check_circle, color: Colors.green),
 
                             SizedBox(width: 8),
 
@@ -144,8 +119,7 @@ class CompletedOrders extends StatelessWidget {
                               "Order collected successfully",
                               style: TextStyle(
                                 color: Colors.green,
-                                fontWeight:
-                                    FontWeight.bold,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],

@@ -20,71 +20,46 @@ class ProfileScreen extends StatelessWidget {
             const CircleAvatar(
               radius: 55,
               backgroundColor: Colors.orange,
-              child: Icon(
-                Icons.person,
-                size: 60,
-                color: Colors.white,
-              ),
+              child: Icon(Icons.person, size: 60, color: Colors.white),
             ),
 
             const SizedBox(height: 15),
 
             const Text(
               "Adhya G V",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 5),
 
             const Text(
               "BCA Student",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
 
             const SizedBox(height: 30),
 
             Card(
               child: ListTile(
-                leading: const Icon(
-                  Icons.school,
-                  color: Colors.orange,
-                ),
+                leading: const Icon(Icons.school, color: Colors.orange),
                 title: const Text("College"),
-                subtitle: const Text(
-                  "PES University",
-                ),
+                subtitle: const Text("PES University"),
               ),
             ),
 
             Card(
               child: ListTile(
-                leading: const Icon(
-                  Icons.email,
-                  color: Colors.orange,
-                ),
+                leading: const Icon(Icons.email, color: Colors.orange),
                 title: const Text("Email"),
-                subtitle: const Text(
-                  "Student Account",
-                ),
+                subtitle: const Text("Student Account"),
               ),
             ),
 
             Card(
               child: ListTile(
-                leading: const Icon(
-                  Icons.person_outline,
-                  color: Colors.orange,
-                ),
+                leading: const Icon(Icons.person_outline, color: Colors.orange),
                 title: const Text("Account Type"),
-                subtitle: const Text(
-                  "Student",
-                ),
+                subtitle: const Text("Student"),
               ),
             ),
 
@@ -100,10 +75,7 @@ class ProfileScreen extends StatelessWidget {
                 icon: const Icon(Icons.arrow_back),
                 label: const Text(
                   "BACK TO HOME",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,

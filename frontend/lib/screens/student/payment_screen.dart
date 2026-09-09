@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
-import '../../models/order_model.dart';
 import '../../services/api_service.dart';
 
 import 'order_success_screen.dart';
@@ -23,8 +22,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   // ============================================================
 
   Future<void> placeOrder() async {
-    final cartProvider =
-        Provider.of<CartProvider>(context, listen: false);
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
 
     // ------------------------------------------------------------
     // CHECK CART
@@ -50,9 +48,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       // CREATE ITEMS LIST
       // ==========================================================
 
-      final List<Map<String, dynamic>> orderItems =
-          cartProvider.items.map((item) {
+      final List<Map<String, dynamic>> orderItems = cartProvider.items.map((
+        item,
+      ) {
         return {
+          "menuItemId": item.menuItemId,
           "name": item.name,
           "price": item.price,
           "quantity": item.quantity,
@@ -66,15 +66,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
       // DATE
       // ==========================================================
 
-      final String date =
-          DateTime.now().toString().substring(0, 10);
-
       // ==========================================================
       // TOTAL
       // ==========================================================
 
-      final double totalAmount =
-          cartProvider.totalAmount;
+      final double totalAmount = cartProvider.totalAmount;
+      final cafeteria = cartProvider.items.first.cafeteria;
+
+      if (cartProvider.items.any((item) => item.cafeteria != cafeteria)) {
+        throw Exception('All items in an order must belong to one cafeteria.');
+      }
 
       // ==========================================================
       // SEND COMPLETE ORDER TO BACKEND
@@ -91,6 +92,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         // IMPORTANT:
         // Backend requires this field.
         "totalAmount": totalAmount,
+        "cafeteria": cafeteria,
 
         "paymentStatus": "Paid",
       };
@@ -100,8 +102,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       debugPrint(orderData.toString());
       debugPrint("====================================");
 
-      final result =
-          await ApiService.placeOrder(orderData);
+      final result = await ApiService.placeOrder(orderData);
 
       if (!mounted) return;
 
@@ -110,33 +111,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
       // ==========================================================
 
       if (result["success"] != true) {
-        throw Exception(
-          result["message"] ??
-              "Failed to place order",
-        );
+        throw Exception(result["message"] ?? "Failed to place order");
       }
 
       // ==========================================================
-      // ADD LOCAL ORDER
+      // ADD THE BACKEND-CREATED ORDER LOCALLY
       // ==========================================================
 
-      final orderProvider =
-          Provider.of<OrderProvider>(
-        context,
-        listen: false,
-      );
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
 
-      final firstItem =
-          cartProvider.items.first;
-
-      final order = OrderModel(
-        foodName: firstItem.name,
-        total: totalAmount,
-        date: date,
-        status: "Confirmed",
-      );
-
-      orderProvider.addOrder(order);
+      final createdOrder = result['order'];
+      if (createdOrder is Map) {
+        orderProvider.addOrder(Map<String, dynamic>.from(createdOrder));
+      }
 
       // ==========================================================
       // CLEAR CART
@@ -150,9 +137,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Order placed successfully!",
-          ),
+          content: Text("Order placed successfully!"),
           backgroundColor: Colors.green,
         ),
       );
@@ -163,23 +148,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const OrderSuccessScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const OrderSuccessScreen()),
       );
     } catch (e) {
       if (!mounted) return;
 
-      debugPrint(
-        "ORDER ERROR: $e",
-      );
+      debugPrint("ORDER ERROR: $e");
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            "Failed to place order: $e",
-          ),
+          content: Text("Failed to place order: $e"),
           backgroundColor: Colors.red,
         ),
       );
@@ -198,17 +176,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cartProvider =
-        Provider.of<CartProvider>(context);
+    final cartProvider = Provider.of<CartProvider>(context);
 
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFFFF8F2),
+      backgroundColor: const Color(0xFFFFF8F2),
 
       // ========================================================
       // APP BAR
       // ========================================================
-
       appBar: AppBar(
         title: const Text("Payment"),
         backgroundColor: Colors.orange,
@@ -218,26 +193,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
       // ========================================================
       // BODY
       // ========================================================
-
       body: Padding(
         padding: const EdgeInsets.all(20),
 
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
-
             // ==================================================
             // PAYMENT SUMMARY
             // ==================================================
-
             const Text(
               "Payment Summary",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 25),
@@ -245,45 +213,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
             // ==================================================
             // SUMMARY CARD
             // ==================================================
-
             Card(
               elevation: 4,
 
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12),
               ),
 
               child: Padding(
-                padding:
-                    const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
 
                 child: Column(
                   children: [
-
                     // ------------------------------------------
                     // NUMBER OF ITEMS
                     // ------------------------------------------
-
                     Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                       children: [
-                        const Text(
-                          "Items",
-                          style: TextStyle(
-                            fontSize: 17,
-                          ),
-                        ),
+                        const Text("Items", style: TextStyle(fontSize: 17)),
 
                         Text(
                           "${cartProvider.itemCount}",
-                          style:
-                              const TextStyle(
-                            fontWeight:
-                                FontWeight.bold,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -297,31 +250,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     // ------------------------------------------
                     // TOTAL
                     // ------------------------------------------
-
                     Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                       children: [
-
                         const Text(
                           "Total Amount",
                           style: TextStyle(
                             fontSize: 20,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
 
                         Text(
                           "₹${cartProvider.totalAmount.toStringAsFixed(0)}",
 
-                          style:
-                              const TextStyle(
+                          style: const TextStyle(
                             fontSize: 22,
                             color: Colors.green,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
@@ -336,13 +283,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
             // ==================================================
             // PAYMENT METHOD
             // ==================================================
-
             const Text(
               "Payment Method",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 15),
@@ -351,41 +294,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
               elevation: 3,
 
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12),
               ),
 
               child: ListTile(
-
-                leading:
-                    const CircleAvatar(
-                  backgroundColor:
-                      Colors.orange,
+                leading: const CircleAvatar(
+                  backgroundColor: Colors.orange,
 
                   child: Icon(
-                    Icons
-                        .account_balance_wallet,
+                    Icons.account_balance_wallet,
                     color: Colors.white,
                   ),
                 ),
 
                 title: const Text(
                   "CampusEats Payment",
-                  style: TextStyle(
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
 
-                subtitle: const Text(
-                  "Demo payment",
-                ),
+                subtitle: const Text("Demo payment"),
 
-                trailing:
-                    const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                ),
+                trailing: const Icon(Icons.check_circle, color: Colors.green),
               ),
             ),
 
@@ -394,63 +323,43 @@ class _PaymentScreenState extends State<PaymentScreen> {
             // ==================================================
             // PAY BUTTON
             // ==================================================
-
             SizedBox(
               width: double.infinity,
               height: 55,
 
               child: ElevatedButton(
+                onPressed: _isPlacingOrder ? null : placeOrder,
 
-                onPressed:
-                    _isPlacingOrder
-                        ? null
-                        : placeOrder,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
 
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Colors.orange,
+                  foregroundColor: Colors.white,
 
-                  foregroundColor:
-                      Colors.white,
+                  disabledBackgroundColor: Colors.orange.shade200,
 
-                  disabledBackgroundColor:
-                      Colors.orange.shade200,
-
-                  shape:
-                      RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(
-                      12,
-                    ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
 
-                child:
-                    _isPlacingOrder
+                child: _isPlacingOrder
+                    ? const SizedBox(
+                        height: 25,
+                        width: 25,
 
-                        ? const SizedBox(
-                            height: 25,
-                            width: 25,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 3,
+                        ),
+                      )
+                    : const Text(
+                        "PAY & PLACE ORDER",
 
-                            child:
-                                CircularProgressIndicator(
-                              color:
-                                  Colors.white,
-                              strokeWidth: 3,
-                            ),
-                          )
-
-                        : const Text(
-                            "PAY & PLACE ORDER",
-
-                            style:
-                                TextStyle(
-                              fontSize: 18,
-                              fontWeight:
-                                  FontWeight.bold,
-                            ),
-                          ),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
 

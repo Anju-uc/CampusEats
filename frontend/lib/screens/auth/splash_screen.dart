@@ -15,20 +15,14 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(
-      const Duration(seconds: 3),
-      () {
-        if (!mounted) return;
+    Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                const RoleSelectionScreen(),
-          ),
-        );
-      },
-    );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
+      );
+    });
   }
 
   @override

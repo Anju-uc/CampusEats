@@ -5,6 +5,7 @@ class FoodModel {
   final double price;
   final String description;
   final String category;
+  final String cafeteria;
   final String imagePath;
 
   bool isAvailable;
@@ -15,6 +16,7 @@ class FoodModel {
     required this.price,
     required this.description,
     required this.category,
+    this.cafeteria = 'Bengaluru Cafe',
     this.imagePath = '',
     this.isAvailable = true,
   });

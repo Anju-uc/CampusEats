@@ -9,6 +9,7 @@ class FoodDetailsScreen extends StatefulWidget {
   final String name;
   final String price;
   final IconData icon;
+  final int? menuItemId;
 
   // Optional cafeteria.
   // Existing calls using only name, price and icon will still work.
@@ -19,16 +20,15 @@ class FoodDetailsScreen extends StatefulWidget {
     required this.name,
     required this.price,
     required this.icon,
-    this.cafeteria = 'Main Cafeteria',
+    this.menuItemId,
+    this.cafeteria = 'Bengaluru Cafe',
   });
 
   @override
-  State<FoodDetailsScreen> createState() =>
-      _FoodDetailsScreenState();
+  State<FoodDetailsScreen> createState() => _FoodDetailsScreenState();
 }
 
-class _FoodDetailsScreenState
-    extends State<FoodDetailsScreen> {
+class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   int quantity = 1;
 
   // ============================================================
@@ -81,14 +81,14 @@ class _FoodDetailsScreenState
   // ============================================================
 
   void addToCart() {
-    final cartProvider =
-        context.read<CartProvider>();
+    final cartProvider = context.read<CartProvider>();
 
     // ----------------------------------------------------------
     // CREATE CART ITEM
     // ----------------------------------------------------------
 
     final item = CartItem(
+      menuItemId: widget.menuItemId,
       name: widget.name,
       price: numericPrice,
       quantity: quantity,
@@ -112,7 +112,19 @@ class _FoodDetailsScreenState
     //
     // ----------------------------------------------------------
 
-    cartProvider.addItem(item);
+    final added = cartProvider.addItem(item);
+
+    if (!added) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Your cart contains items from ${cartProvider.items.first.cafeteria}. Please checkout first or clear your cart before ordering from another cafeteria.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     // ----------------------------------------------------------
     // SHOW SUCCESS MESSAGE
@@ -122,9 +134,7 @@ class _FoodDetailsScreenState
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          '${widget.name} added to cart',
-        ),
+        content: Text('${widget.name} added to cart'),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
         action: SnackBarAction(
@@ -133,10 +143,7 @@ class _FoodDetailsScreenState
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    const CartScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const CartScreen()),
             );
           },
         ),
@@ -151,10 +158,7 @@ class _FoodDetailsScreenState
   void openCart() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) =>
-            const CartScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const CartScreen()),
     );
   }
 
@@ -165,32 +169,25 @@ class _FoodDetailsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFFFF8F1),
+      backgroundColor: const Color(0xFFFFF8F1),
 
       // ==========================================================
       // APP BAR
       // ==========================================================
-
       appBar: AppBar(
-        backgroundColor:
-            const Color(0xFFFF8A00),
+        backgroundColor: const Color(0xFFFF8A00),
         foregroundColor: Colors.white,
         elevation: 0,
 
         title: const Text(
           'Food Details',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
 
         actions: [
           IconButton(
             onPressed: openCart,
-            icon: const Icon(
-              Icons.shopping_cart_outlined,
-            ),
+            icon: const Icon(Icons.shopping_cart_outlined),
           ),
         ],
       ),
@@ -198,22 +195,17 @@ class _FoodDetailsScreenState
       // ==========================================================
       // BODY
       // ==========================================================
-
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ======================================================
             // FOOD IMAGE / ICON
             // ======================================================
-
             Container(
               width: double.infinity,
               height: 280,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFE8D0),
-              ),
+              decoration: const BoxDecoration(color: Color(0xFFFFE8D0)),
               child: Center(
                 child: Container(
                   height: 150,
@@ -225,16 +217,14 @@ class _FoodDetailsScreenState
                       BoxShadow(
                         color: Colors.black12,
                         blurRadius: 15,
-                        offset:
-                            Offset(0, 6),
+                        offset: Offset(0, 6),
                       ),
                     ],
                   ),
                   child: Icon(
                     widget.icon,
                     size: 85,
-                    color:
-                        const Color(0xFFFF8A00),
+                    color: const Color(0xFFFF8A00),
                   ),
                 ),
               ),
@@ -243,24 +233,19 @@ class _FoodDetailsScreenState
             // ======================================================
             // CONTENT
             // ======================================================
-
             Padding(
-              padding:
-                  const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ==================================================
                   // FOOD NAME
                   // ==================================================
-
                   Text(
                     widget.name,
                     style: const TextStyle(
                       fontSize: 28,
-                      fontWeight:
-                          FontWeight.w900,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
 
@@ -269,104 +254,70 @@ class _FoodDetailsScreenState
                   // ==================================================
                   // RATING
                   // ==================================================
-
                   Row(
                     children: [
                       Container(
-                        padding:
-                            const EdgeInsets
-                                .symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 9,
                           vertical: 5,
                         ),
-                        decoration:
-                            BoxDecoration(
-                          color: Colors.green
-                              .shade50,
-                          borderRadius:
-                              BorderRadius
-                                  .circular(
-                            10,
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Row(
                           children: [
                             Icon(
-                              Icons
-                                  .star_rounded,
+                              Icons.star_rounded,
                               size: 18,
-                              color:
-                                  Colors.orange,
+                              color: Colors.orange,
                             ),
-                            SizedBox(
-                              width: 4,
-                            ),
+                            SizedBox(width: 4),
                             Text(
                               '4.8',
-                              style:
-                                  TextStyle(
-                                fontWeight:
-                                    FontWeight
-                                        .bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
                       ),
 
-                      const SizedBox(
-                        width: 10,
-                      ),
+                      const SizedBox(width: 10),
 
                       Text(
                         widget.cafeteria,
                         style: TextStyle(
-                          color: Colors
-                              .grey.shade600,
+                          color: Colors.grey.shade600,
                           fontSize: 14,
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   // ==================================================
                   // PRICE
                   // ==================================================
-
                   Text(
                     widget.price,
                     style: const TextStyle(
                       color: Colors.green,
                       fontSize: 25,
-                      fontWeight:
-                          FontWeight.w900,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   // ==================================================
                   // DESCRIPTION
                   // ==================================================
-
                   const Text(
                     'About this food',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
                   ),
 
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  const SizedBox(height: 8),
 
                   Text(
                     'Freshly prepared food available '
@@ -376,89 +327,58 @@ class _FoodDetailsScreenState
                     style: TextStyle(
                       fontSize: 15,
                       height: 1.5,
-                      color:
-                          Colors.grey.shade700,
+                      color: Colors.grey.shade700,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 25,
-                  ),
+                  const SizedBox(height: 25),
 
                   // ==================================================
                   // CAFETERIA
                   // ==================================================
-
                   Container(
                     width: double.infinity,
-                    padding:
-                        const EdgeInsets.all(
-                      15,
-                    ),
-                    decoration:
-                        BoxDecoration(
-                      color:
-                          Colors.orange.shade50,
-                      borderRadius:
-                          BorderRadius
-                              .circular(
-                        15,
-                      ),
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(15),
                     ),
                     child: Row(
                       children: [
                         Container(
                           height: 42,
                           width: 42,
-                          decoration:
-                              BoxDecoration(
-                            color:
-                                Colors.orange,
-                            borderRadius:
-                                BorderRadius
-                                    .circular(
-                              12,
-                            ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange,
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.restaurant,
-                            color:
-                                Colors.white,
+                            color: Colors.white,
                           ),
                         ),
 
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
 
                         Expanded(
                           child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
                                 'Cafeteria',
-                                style:
-                                    TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors
-                                      .grey,
+                                  color: Colors.grey,
                                 ),
                               ),
 
-                              const SizedBox(
-                                height: 3,
-                              ),
+                              const SizedBox(height: 3),
 
                               Text(
                                 widget.cafeteria,
-                                style:
-                                    const TextStyle(
+                                style: const TextStyle(
                                   fontSize: 16,
-                                  fontWeight:
-                                      FontWeight
-                                          .bold,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
@@ -468,249 +388,156 @@ class _FoodDetailsScreenState
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 25,
-                  ),
+                  const SizedBox(height: 25),
 
                   // ==================================================
                   // QUANTITY
                   // ==================================================
-
                   const Text(
                     'Quantity',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
                   ),
 
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
 
                   Container(
-                    padding:
-                        const EdgeInsets
-                            .symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 6,
                     ),
-                    decoration:
-                        BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius:
-                          BorderRadius
-                              .circular(
-                        15,
-                      ),
-                      border: Border.all(
-                        color: Colors
-                            .grey.shade200,
-                      ),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
                     child: Row(
-                      mainAxisSize:
-                          MainAxisSize.min,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         // MINUS
-
                         IconButton(
-                          onPressed:
-                              decreaseQuantity,
-                          icon: const Icon(
-                            Icons
-                                .remove_circle_outline,
-                          ),
-                          color:
-                              Colors.orange,
+                          onPressed: decreaseQuantity,
+                          icon: const Icon(Icons.remove_circle_outline),
+                          color: Colors.orange,
                         ),
 
                         Container(
                           width: 45,
-                          alignment:
-                              Alignment
-                                  .center,
+                          alignment: Alignment.center,
                           child: Text(
                             '$quantity',
-                            style:
-                                const TextStyle(
+                            style: const TextStyle(
                               fontSize: 20,
-                              fontWeight:
-                                  FontWeight
-                                      .bold,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
 
                         // PLUS
-
                         IconButton(
-                          onPressed:
-                              increaseQuantity,
-                          icon: const Icon(
-                            Icons
-                                .add_circle_outline,
-                          ),
-                          color:
-                              Colors.orange,
+                          onPressed: increaseQuantity,
+                          icon: const Icon(Icons.add_circle_outline),
+                          color: Colors.orange,
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 25,
-                  ),
+                  const SizedBox(height: 25),
 
                   // ==================================================
                   // TOTAL
                   // ==================================================
-
                   Container(
                     width: double.infinity,
-                    padding:
-                        const EdgeInsets.all(
-                      18,
-                    ),
-                    decoration:
-                        BoxDecoration(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius:
-                          BorderRadius
-                              .circular(
-                        16,
-                      ),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: const [
                         BoxShadow(
-                          color:
-                              Colors.black12,
+                          color: Colors.black12,
                           blurRadius: 8,
-                          offset:
-                              Offset(0, 3),
+                          offset: Offset(0, 3),
                         ),
                       ],
                     ),
                     child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           'Total',
-                          style:
-                              TextStyle(
+                          style: TextStyle(
                             fontSize: 19,
-                            fontWeight:
-                                FontWeight
-                                    .bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
 
                         Text(
                           '₹${totalPrice.toStringAsFixed(0)}',
-                          style:
-                              const TextStyle(
-                            color:
-                                Colors.green,
+                          style: const TextStyle(
+                            color: Colors.green,
                             fontSize: 23,
-                            fontWeight:
-                                FontWeight
-                                    .w900,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   // ==================================================
                   // ADD TO CART BUTTON
                   // ==================================================
-
                   SizedBox(
                     width: double.infinity,
                     height: 55,
-                    child:
-                        ElevatedButton.icon(
-                      onPressed:
-                          addToCart,
+                    child: ElevatedButton.icon(
+                      onPressed: addToCart,
 
-                      icon: const Icon(
-                        Icons
-                            .shopping_cart_outlined,
-                      ),
+                      icon: const Icon(Icons.shopping_cart_outlined),
 
                       label: const Text(
                         'ADD TO CART',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
 
-                      style:
-                          ElevatedButton
-                              .styleFrom(
-                        backgroundColor:
-                            const Color(
-                          0xFFFF8A00,
-                        ),
-                        foregroundColor:
-                            Colors.white,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF8A00),
+                        foregroundColor: Colors.white,
                         elevation: 0,
-                        shape:
-                            RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius
-                                  .circular(
-                            15,
-                          ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 12,
-                  ),
+                  const SizedBox(height: 12),
 
                   // ==================================================
                   // BUY NOW
                   // ==================================================
-
                   SizedBox(
                     width: double.infinity,
                     height: 55,
-                    child:
-                        OutlinedButton(
+                    child: OutlinedButton(
                       onPressed: () {
                         addToCart();
                         openCart();
                       },
 
-                      style:
-                          OutlinedButton
-                              .styleFrom(
-                        foregroundColor:
-                            Colors.orange,
-                        side:
-                            const BorderSide(
-                          color:
-                              Colors.orange,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange,
+                        side: const BorderSide(
+                          color: Colors.orange,
                           width: 1.5,
                         ),
-                        shape:
-                            RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius
-                                  .circular(
-                            15,
-                          ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
 
@@ -718,16 +545,13 @@ class _FoodDetailsScreenState
                         'BUY NOW',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight:
-                              FontWeight.bold,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 30,
-                  ),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),

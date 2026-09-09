@@ -13,7 +13,6 @@ class NotificationScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
-
           Card(
             child: ListTile(
               leading: Icon(Icons.restaurant, color: Colors.orange),
@@ -28,9 +27,7 @@ class NotificationScreen extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.local_offer, color: Colors.green),
               title: Text("Today's Special"),
-              subtitle: Text(
-                "Paneer Butter Masala + Rice ₹99",
-              ),
+              subtitle: Text("Paneer Butter Masala + Rice ₹99"),
             ),
           ),
 
@@ -38,9 +35,7 @@ class NotificationScreen extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.campaign, color: Colors.blue),
               title: Text("Welcome"),
-              subtitle: Text(
-                "Welcome to CampusEats. Enjoy your meals!",
-              ),
+              subtitle: Text("Welcome to CampusEats. Enjoy your meals!"),
             ),
           ),
         ],
