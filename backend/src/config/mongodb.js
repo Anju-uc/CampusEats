@@ -9,9 +9,11 @@ async function connectMongoDB() {
     throw new Error("MONGODB_URI is not configured");
   }
 
+  if (!config.mongodb.dbName) {
+    throw new Error("MONGODB_DB_NAME is not configured");
+  }
+
   client = new MongoClient(config.mongodb.uri, {
-    tls: true,
-    tlsInsecure: true,
     serverSelectionTimeoutMS: 10000,
   });
 

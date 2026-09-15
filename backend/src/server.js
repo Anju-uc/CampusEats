@@ -1,12 +1,31 @@
 require("dotenv").config();
 
 const app = require("./app");
-const { connectMongoDB } = require("./config/mongodb");
+const { connectMongoDB, getDb } = require("./config/mongodb");
 const config = require("./config/env");
+const { ensureReviewIndexes } = require("./modules/reviews/review.service");
+
+async function ensureDatabaseIndexes() {
+  const db = getDb();
+
+  await db.collection("reviews").createIndex({ userId: 1 });
+  await db.collection("reviews").createIndex({ menuItemId: 1 });
+  await db.collection("reviews").createIndex(
+    { userId: 1, menuItemId: 1 },
+    { unique: true }
+  );
+
+  await db.collection("orders").createIndex({ userId: 1 });
+  await db.collection("orders").createIndex({ createdAt: -1 });
+  await db.collection("orders").createIndex({ "items.menuItemId": 1 });
+
+  await ensureReviewIndexes();
+}
 
 async function startServer() {
   try {
     await connectMongoDB();
+    await ensureDatabaseIndexes();
 
     app.listen(config.port, () => {
       console.log(
