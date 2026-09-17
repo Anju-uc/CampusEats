@@ -38,6 +38,39 @@ async function seedMenuAndOrders() {
   await db.collection("reviews").deleteMany({});
   await db.collection("carts").deleteMany({});
   await db.collection("menu").insertMany([SAMPLE_MENU, SAMPLE_MENU_2]);
+
+  await db.collection("orders").insertMany([
+    {
+      userId: "user-1",
+      items: [
+        {
+          menuItemId: SAMPLE_MENU._id,
+          name: SAMPLE_MENU.name,
+          price: SAMPLE_MENU.price,
+          quantity: 1,
+        },
+      ],
+      total: SAMPLE_MENU.price,
+      status: "COMPLETED",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      userId: "user-2",
+      items: [
+        {
+          menuItemId: SAMPLE_MENU._id,
+          name: SAMPLE_MENU.name,
+          price: SAMPLE_MENU.price,
+          quantity: 1,
+        },
+      ],
+      total: SAMPLE_MENU.price,
+      status: "COMPLETED",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ]);
 }
 
 test("review valid review is created", async () => {

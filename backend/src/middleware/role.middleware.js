@@ -1,4 +1,10 @@
+const { VALID_ROLES } = require("../common/constants/roles");
+
 function requireRole(...allowedRoles) {
+    const canonicalAllowedRoles = allowedRoles.filter((role) =>
+      VALID_ROLES.includes(role)
+    );
+
     return (req, res, next) => {
       if (!req.user) {
         return res.status(401).json({
@@ -7,9 +13,7 @@ function requireRole(...allowedRoles) {
         });
       }
   
-      const userRole =
-        req.user.role ||
-        req.user.customClaims?.role;
+      const userRole = req.user.role;
   
       if (!userRole) {
         return res.status(403).json({
@@ -18,7 +22,10 @@ function requireRole(...allowedRoles) {
         });
       }
   
-      if (!allowedRoles.includes(userRole)) {
+      if (
+        !VALID_ROLES.includes(userRole) ||
+        !canonicalAllowedRoles.includes(userRole)
+      ) {
         return res.status(403).json({
           status: "error",
           message: "You do not have permission to perform this action",

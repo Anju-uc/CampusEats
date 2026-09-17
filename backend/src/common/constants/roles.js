@@ -1,7 +1,8 @@
 const ROLES = Object.freeze({
-    STUDENT: "student",
-    KITCHEN: "kitchen",
-    ADMIN: "admin",
+  STUDENT: "Student",
+  ADMIN: "Admin",
+  KITCHEN: "Kitchen",
+  FACULTY: "Faculty",
   });
   
   const VALID_ROLES = Object.freeze(

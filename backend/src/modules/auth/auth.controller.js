@@ -32,7 +32,32 @@ async function login(req, res, next) {
   }
 }
 
+async function updateStudentStatus(req, res, next) {
+  try {
+    const user = await authService.updateStudentStatus(
+      req.params.studentId,
+      req.body.status
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Student status updated successfully",
+      data: {
+        uid: user.uid,
+        studentId: user.studentId,
+        name: user.name,
+        program: user.program,
+        status: user.status,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
+  updateStudentStatus,
 };

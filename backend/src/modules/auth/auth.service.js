@@ -1,148 +1,162 @@
 const { auth } = require("../../config/firebase");
 const { getDb } = require("../../config/mongodb");
+const {
+  STUDENT_STATUS,
+  STUDENT_PROGRAMS,
+} = require("../../common/constants/student");
+const { ROLES } = require("../../common/constants/roles");
+const { normalizeStudentId } = require("./auth.validator");
 
-// ============================================================
-// REGISTER USER
-// ============================================================
+const GENERIC_LOGIN_ERROR = "Invalid student ID or password";
 
-async function registerUser({
-  studentId,
-  name,
-  email,
-  password,
-  role = "Student",
-}) {
-  if (!studentId) {
-    const err = new Error("Student ID is required");
-    err.statusCode = 400;
-    throw err;
+function createError(message, statusCode) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  error.isOperational = true;
+  return error;
+}
+
+function getInternalFirebaseEmail(studentId) {
+  const normalizedId = normalizeStudentId(studentId);
+  const encodedId = Buffer.from(normalizedId)
+    .toString("base64url");
+  return `${encodedId}@students.campuseats.internal`;
+}
+
+function toStudentResponse(user, tokens = {}) {
+  return {
+    uid: user.uid,
+    studentId: user.studentId,
+    name: user.name,
+    program: user.program,
+    status: user.status,
+    role: user.role,
+    ...(tokens.idToken ? tokens : {}),
+  };
+}
+
+async function registerUser({ studentId, password }) {
+  const normalizedStudentId = normalizeStudentId(studentId);
+
+  if (!normalizedStudentId) {
+    throw createError("Student ID is required", 400);
   }
 
-  const db = getDb();
-  const users = db.collection("users");
+  const users = getDb().collection("users");
+  const registry = getDb().collection("studentRegistry");
+  const registryStudent = await registry.findOne({
+    studentId: normalizedStudentId,
+  });
 
-  // Check whether the ID is already used.
-  const existingId = await users.findOne({ studentId });
+  if (!registryStudent) {
+    throw createError("Student is not authorized for registration", 403);
+  }
+
+  if (
+    registryStudent.status !== STUDENT_STATUS.ACTIVE ||
+    !STUDENT_PROGRAMS.includes(registryStudent.program)
+  ) {
+    throw createError("Student is not eligible for registration", 403);
+  }
+
+  const existingId = await users.findOne({ studentId: normalizedStudentId });
 
   if (existingId) {
-    const err = new Error("Student ID already registered");
-    err.statusCode = 409;
-    throw err;
+    throw createError("Student ID already registered", 409);
   }
 
+  const firebaseEmail = getInternalFirebaseEmail(normalizedStudentId);
+  let userRecord;
+
   try {
-    // Create Firebase account.
-    const userRecord = await auth.createUser({
-      email,
+    userRecord = await auth.createUser({
+      email: firebaseEmail,
       password,
-      displayName: name,
+      displayName: registryStudent.name,
       emailVerified: false,
     });
 
-    // Store application user information in MongoDB.
+    const now = new Date();
     const userDocument = {
       uid: userRecord.uid,
-      studentId,
-      name: userRecord.displayName || name,
-      email: userRecord.email || email,
-      role,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      studentId: normalizedStudentId,
+      name: registryStudent.name,
+      program: registryStudent.program,
+      status: STUDENT_STATUS.ACTIVE,
+      role: ROLES.STUDENT,
+      createdAt: now,
+      updatedAt: now,
     };
 
-    await users.insertOne(userDocument);
-
-    return {
-      uid: userRecord.uid,
-      studentId,
-      name: userRecord.name || name,
-      email: userRecord.email || email,
-      role,
-    };
-  } catch (error) {
-    // If Firebase account already exists.
-    if (error.code === "auth/email-already-exists") {
-      const err = new Error("Email already registered");
-      err.statusCode = 409;
-      throw err;
+    try {
+      await users.insertOne(userDocument);
+    } catch (error) {
+      if (error.code === 11000) {
+        await auth.deleteUser(userRecord.uid);
+        throw createError("Student ID already registered", 409);
+      }
+      await auth.deleteUser(userRecord.uid).catch(() => undefined);
+      throw error;
     }
 
-    if (error.code === "auth/invalid-email") {
-      const err = new Error("Invalid email address");
-      err.statusCode = 400;
-      throw err;
+    return toStudentResponse(userDocument);
+  } catch (error) {
+    if (error.statusCode) {
+      throw error;
+    }
+
+    if (error.code === "auth/email-already-exists") {
+      throw createError("Student ID already registered", 409);
     }
 
     if (
-      error.code === "auth/password-does-not-meet-requirements"
+      error.code === "auth/password-does-not-meet-requirements" ||
+      error.code === "auth/weak-password"
     ) {
-      const err = new Error(
-        "Password does not meet Firebase requirements"
-      );
-      err.statusCode = 400;
-      throw err;
+      throw createError("Password does not meet Firebase requirements", 400);
     }
 
     throw error;
   }
 }
 
-// ============================================================
-// LOGIN USER
-// ============================================================
+async function loginUser({ studentId, password }) {
+  const normalizedStudentId = normalizeStudentId(studentId);
+  const users = getDb().collection("users");
+  const registry = getDb().collection("studentRegistry");
+  const registryStudent = await registry.findOne({
+    studentId: normalizedStudentId,
+  });
+  const user = await users.findOne({ studentId: normalizedStudentId });
 
-async function loginUser({ studentId, email, password }) {
-  const db = getDb();
-  const users = db.collection("users");
-
-  let loginEmail = email;
-  let user = null;
-
-  // If Student ID was entered, find the linked Firebase email.
-  if (studentId) {
-    user = await users.findOne({ studentId });
-
-    if (!user) {
-      const err = new Error("Invalid Student ID or password");
-      err.statusCode = 401;
-      throw err;
-    }
-
-    loginEmail = user.email;
-  }
-
-  if (!loginEmail) {
-    const err = new Error("Student ID is required");
-    err.statusCode = 400;
-    throw err;
+  if (
+    !registryStudent ||
+    registryStudent.status !== STUDENT_STATUS.ACTIVE ||
+    !user ||
+    user.role !== ROLES.STUDENT ||
+    user.status !== STUDENT_STATUS.ACTIVE
+  ) {
+    throw createError(GENERIC_LOGIN_ERROR, 401);
   }
 
   const apiKey = process.env.FIREBASE_WEB_API_KEY;
 
   if (!apiKey) {
-    const err = new Error(
-      "FIREBASE_WEB_API_KEY is not configured"
-    );
-    err.statusCode = 500;
-    throw err;
+    throw createError("FIREBASE_WEB_API_KEY is not configured", 500);
   }
 
   const firebaseUrl =
     `https://identitytoolkit.googleapis.com/v1/` +
     `accounts:signInWithPassword?key=${apiKey}`;
-
   const response = await fetch(firebaseUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: loginEmail,
+      email: getInternalFirebaseEmail(normalizedStudentId),
       password,
       returnSecureToken: true,
     }),
   });
-
   const data = await response.json();
 
   if (!response.ok) {
@@ -151,41 +165,66 @@ async function loginUser({ studentId, email, password }) {
     if (
       message === "EMAIL_NOT_FOUND" ||
       message === "INVALID_PASSWORD" ||
-      message === "INVALID_LOGIN_CREDENTIALS"
+      message === "INVALID_LOGIN_CREDENTIALS" ||
+      message === "USER_DISABLED"
     ) {
-      const err = new Error(
-        "Invalid Student ID or password"
-      );
-      err.statusCode = 401;
-      throw err;
+      throw createError(GENERIC_LOGIN_ERROR, 401);
     }
 
-    if (message === "USER_DISABLED") {
-      const err = new Error("User account is disabled");
-      err.statusCode = 403;
-      throw err;
-    }
-
-    const err = new Error(
-      "Firebase authentication failed"
-    );
-    err.statusCode = 401;
-    throw err;
+    throw createError("Firebase authentication failed", 401);
   }
 
-  return {
-    uid: data.localId,
-    studentId: user?.studentId || studentId || null,
-    name: user?.name || "",
-    role: user?.role || "Student",
-    email: data.email,
+  return toStudentResponse(user, {
     idToken: data.idToken,
     refreshToken: data.refreshToken,
     expiresIn: data.expiresIn,
-  };
+  });
+}
+
+async function updateStudentStatus(studentId, status) {
+  if (!Object.values(STUDENT_STATUS).includes(status)) {
+    throw createError("Invalid student status", 400);
+  }
+
+  const users = getDb().collection("users");
+  const registry = getDb().collection("studentRegistry");
+  const normalizedStudentId = normalizeStudentId(studentId);
+  const registryStudent = await registry.findOne({
+    studentId: normalizedStudentId,
+  });
+
+  if (!registryStudent) {
+    throw createError("Student not found", 404);
+  }
+
+  const user = await users.findOne({ studentId: normalizedStudentId });
+
+  const now = new Date();
+  await registry.updateOne(
+    { _id: registryStudent._id },
+    { $set: { status, updatedAt: now } }
+  );
+
+  if (!user) {
+    return { ...registryStudent, status, updatedAt: now };
+  }
+
+  await users.updateOne({ _id: user._id }, { $set: { status, updatedAt: now } });
+
+  if (status === STUDENT_STATUS.ACTIVE) {
+    await auth.updateUser(user.uid, { disabled: false });
+  } else {
+    await auth.updateUser(user.uid, { disabled: true });
+    await auth.revokeRefreshTokens(user.uid);
+  }
+
+  return { ...user, status, updatedAt: now };
 }
 
 module.exports = {
+  GENERIC_LOGIN_ERROR,
+  getInternalFirebaseEmail,
   registerUser,
   loginUser,
+  updateStudentStatus,
 };

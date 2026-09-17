@@ -3,6 +3,15 @@ const { getDb } = require("../../config/mongodb");
 
 const CART_COLLECTION = "carts";
 const MENU_COLLECTION = "menu";
+const MAX_CART_QUANTITY = 99;
+
+function validateQuantity(quantity) {
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_CART_QUANTITY) {
+    const error = new Error(`quantity must be an integer from 1 to ${MAX_CART_QUANTITY}`);
+    error.statusCode = 400;
+    throw error;
+  }
+}
 
 function getCartCollection() {
   return getDb().collection(CART_COLLECTION);
@@ -59,6 +68,7 @@ async function getCart(userId) {
 }
 
 async function addToCart(userId, menuItemId, quantity) {
+  validateQuantity(quantity);
   validateObjectId(menuItemId);
 
   const menuItem = await getMenuCollection().findOne({
@@ -133,6 +143,7 @@ async function addToCart(userId, menuItemId, quantity) {
 }
 
 async function updateCartItem(userId, menuItemId, quantity) {
+  validateQuantity(quantity);
   validateObjectId(menuItemId);
 
   const menuItem = await getMenuCollection().findOne({

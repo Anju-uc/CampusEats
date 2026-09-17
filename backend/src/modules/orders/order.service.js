@@ -12,6 +12,7 @@ const {
 const {
   emitKitchenUpdate,
 } = require("../../realtime/kitchenRealtime.service");
+const { ROLES } = require("../../common/constants/roles");
 
 const ORDERS_COLLECTION = "orders";
 const CARTS_COLLECTION = "carts";
@@ -29,6 +30,16 @@ function getMenuCollection() {
   return getDb().collection(MENU_COLLECTION);
 }
 
+async function ensureActiveStudent(userId) {
+  const user = await getDb().collection("users").findOne({ uid: userId });
+
+  if (!user || user.role !== ROLES.STUDENT || user.status !== "ACTIVE") {
+    const error = new Error("An active student account is required");
+    error.statusCode = 403;
+    throw error;
+  }
+}
+
 function validateOrderId(orderId) {
   if (!ObjectId.isValid(orderId)) {
     const error = new Error("Invalid order ID");
@@ -38,6 +49,8 @@ function validateOrderId(orderId) {
 }
 
 async function createOrder(userId, notes = "") {
+  await ensureActiveStudent(userId);
+
   const cart = await getCartsCollection().findOne({ userId });
 
   if (!cart || !cart.items || cart.items.length === 0) {
@@ -164,6 +177,7 @@ async function updateOrderStatus(orderId, nextStatus) {
   const updatedOrder = await getOrdersCollection().findOneAndUpdate(
     {
       _id: new ObjectId(orderId),
+      status: order.status,
     },
     {
       $set: {

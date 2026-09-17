@@ -1,3 +1,5 @@
+const MAX_CART_QUANTITY = 99;
+
 function validateAddToCart(req, res, next) {
     const { menuItemId, quantity } = req.body;
   
@@ -12,11 +14,12 @@ function validateAddToCart(req, res, next) {
   
     if (
       !Number.isInteger(numericQuantity) ||
-      numericQuantity < 1
+      numericQuantity < 1 ||
+      numericQuantity > MAX_CART_QUANTITY
     ) {
       return res.status(400).json({
         status: "error",
-        message: "quantity must be a positive integer",
+        message: `quantity must be an integer from 1 to ${MAX_CART_QUANTITY}`,
       });
     }
   
@@ -37,11 +40,12 @@ function validateAddToCart(req, res, next) {
   
     if (
       !Number.isInteger(numericQuantity) ||
-      numericQuantity < 1
+      numericQuantity < 1 ||
+      numericQuantity > MAX_CART_QUANTITY
     ) {
       return res.status(400).json({
         status: "error",
-        message: "quantity must be a positive integer",
+        message: `quantity must be an integer from 1 to ${MAX_CART_QUANTITY}`,
       });
     }
   
@@ -49,6 +53,7 @@ function validateAddToCart(req, res, next) {
   }
   
   module.exports = {
+    MAX_CART_QUANTITY,
     validateAddToCart,
     validateUpdateCartItem,
   };

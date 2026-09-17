@@ -2,6 +2,9 @@ const express = require("express");
 
 const orderController = require("./order.controller");
 const { authenticate } = require("../../middleware/auth.middleware");
+const { requireCampusAccess } = require("../../middleware/campusAccess.middleware");
+const { requireRole } = require("../../middleware/role.middleware");
+const { ROLES } = require("../../common/constants/roles");
 const {
   validateCreateOrder,
   validateOrderStatus,
@@ -14,6 +17,7 @@ router.use(authenticate);
 router.post(
   "/",
   validateCreateOrder,
+  requireCampusAccess,
   orderController.createOrder
 );
 
@@ -35,6 +39,7 @@ router.get(
 
 router.patch(
   "/:id/status",
+  requireRole(ROLES.ADMIN, ROLES.KITCHEN, ROLES.FACULTY),
   validateOrderStatus,
   orderController.updateOrderStatus
 );

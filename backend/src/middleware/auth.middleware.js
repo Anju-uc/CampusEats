@@ -1,4 +1,5 @@
 const { auth } = require("../config/firebase");
+const { getDb } = require("../config/mongodb");
 
 async function authenticate(req, res, next) {
   try {
@@ -22,7 +23,26 @@ async function authenticate(req, res, next) {
 
     const decodedToken = await auth.verifyIdToken(idToken);
 
-    req.user = decodedToken;
+    const user = await getDb().collection("users").findOne({
+      uid: decodedToken.uid,
+    });
+
+    if (!user) {
+      return res.status(401).json({
+        status: "error",
+        message: "Authenticated user is not provisioned",
+      });
+    }
+
+    req.user = {
+      ...decodedToken,
+      uid: user.uid,
+      studentId: user.studentId,
+      name: user.name,
+      program: user.program,
+      role: user.role,
+      status: user.status,
+    };
 
     next();
   } catch (error) {

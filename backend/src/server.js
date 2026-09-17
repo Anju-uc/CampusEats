@@ -18,6 +18,28 @@ async function ensureDatabaseIndexes() {
   await db.collection("orders").createIndex({ userId: 1 });
   await db.collection("orders").createIndex({ createdAt: -1 });
   await db.collection("orders").createIndex({ "items.menuItemId": 1 });
+  await db.collection("users").createIndex(
+    { studentId: 1 },
+    { unique: true, sparse: true }
+  );
+  await db.collection("studentRegistry").createIndex(
+    { studentId: 1 },
+    { unique: true }
+  );
+  await db.collection("studentRegistry").createIndex({ status: 1 });
+  await db.collection("studentRegistry").createIndex({ program: 1 });
+  await db.collection("carts").createIndex(
+    { userId: 1 },
+    { unique: true }
+  );
+  await db.collection("campusAccessProofs").createIndex(
+    { jti: 1 },
+    { unique: true }
+  );
+  await db.collection("campusAccessProofs").createIndex(
+    { expiresAt: 1 },
+    { expireAfterSeconds: 0 }
+  );
 
   await ensureReviewIndexes();
 }
