@@ -61,16 +61,30 @@ class OrderProvider extends ChangeNotifier {
   // LOAD ORDERS
   // ============================================================
 
-  Future<void> loadOrders() async {
+  Future<void> loadOrders({bool studentOnly = false}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      if (ApiService.adminToken == null) {
-        await ApiService.restoreAdminSession();
+      final hasStudentSession =
+          ApiService.studentToken != null ||
+          await ApiService.restoreStudentSession();
+      if (studentOnly && !hasStudentSession) {
+        throw Exception('Student session expired. Please log in again.');
       }
-      final result = await ApiService.getOrders();
+      final hasStaffSession =
+          !hasStudentSession &&
+          (ApiService.adminToken != null ||
+              await ApiService.restoreAdminSession());
+      final hasRealStaffToken =
+          hasStaffSession &&
+          !(ApiService.adminToken?.startsWith('demo-') ?? true);
+      final result = hasStudentSession
+          ? await ApiService.getStudentOrders()
+          : hasRealStaffToken
+          ? await ApiService.getStaffOrders()
+          : await ApiService.getOrders();
 
       debugPrint('======================================');
       debugPrint('RAW ORDERS RESULT: $result');
@@ -109,18 +123,10 @@ class OrderProvider extends ChangeNotifier {
   // GET ORDER ID
   // ============================================================
 
-  int getOrderId(Map<String, dynamic> order) {
+  String getOrderId(Map<String, dynamic> order) {
     final id = order['id'] ?? order['orderId'];
 
-    if (id is int) {
-      return id;
-    }
-
-    if (id is num) {
-      return id.toInt();
-    }
-
-    return int.tryParse(id?.toString() ?? '') ?? 0;
+    return id?.toString() ?? '';
   }
 
   // ============================================================
@@ -420,7 +426,7 @@ class OrderProvider extends ChangeNotifier {
   // UPDATE ORDER STATUS
   // ============================================================
 
-  Future<bool> updateOrderStatus(int orderId, String status) async {
+  Future<bool> updateOrderStatus(String orderId, String status) async {
     final normalizedStatus = normalizeStatus(status);
     final currentOrder = _orders.cast<Map<String, dynamic>?>().firstWhere(
       (order) => order != null && getOrderId(order) == orderId,
@@ -496,7 +502,7 @@ class OrderProvider extends ChangeNotifier {
   // DELETE ORDER
   // ============================================================
 
-  Future<bool> deleteOrder(int orderId) async {
+  Future<bool> deleteOrder(String orderId) async {
     try {
       debugPrint('Deleting order $orderId');
 
@@ -596,6 +602,12 @@ class OrderProvider extends ChangeNotifier {
   // ============================================================
 
   void clearError() {
+    _error = null;
+    notifyListeners();
+  }
+
+  void clearOrders() {
+    _orders = [];
     _error = null;
     notifyListeners();
   }

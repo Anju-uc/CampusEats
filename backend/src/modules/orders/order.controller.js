@@ -5,7 +5,8 @@ async function createOrder(req, res, next) {
   try {
     const order = await orderService.createOrder(
       req.user.uid,
-      req.body.notes
+      req.body.notes,
+      req.body.items
     );
 
     res.status(201).json({
@@ -21,6 +22,19 @@ async function createOrder(req, res, next) {
 async function getMyOrders(req, res, next) {
   try {
     const orders = await orderService.getMyOrders(req.user.uid);
+
+    res.status(200).json({
+      status: "success",
+      data: orders,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getAllOrders(req, res, next) {
+  try {
+    const orders = await orderService.getAllOrders();
 
     res.status(200).json({
       status: "success",
@@ -100,6 +114,7 @@ async function cancelOrder(req, res, next) {
 module.exports = {
   createOrder,
   getMyOrders,
+  getAllOrders,
   getOrderById,
   getEta,
   updateOrderStatus,

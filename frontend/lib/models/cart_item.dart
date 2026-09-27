@@ -1,5 +1,6 @@
 class CartItem {
   final int? menuItemId;
+  final String? backendMenuItemId;
   final String name;
   final String image;
   final double price;
@@ -12,6 +13,7 @@ class CartItem {
 
   CartItem({
     this.menuItemId,
+    this.backendMenuItemId,
     required this.name,
     required this.image,
     required this.price,

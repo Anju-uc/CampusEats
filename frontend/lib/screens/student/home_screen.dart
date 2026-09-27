@@ -6,9 +6,12 @@ import 'notification_screen.dart';
 import 'menu_screen.dart';
 import 'profile_screen.dart';
 import 'order_tracking_screen.dart';
+import '../../services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String role;
+
+  const HomeScreen({super.key, this.role = "Student"});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -184,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void openProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+      MaterialPageRoute(builder: (context) => ProfileScreen(role: widget.role)),
     );
   }
 
@@ -211,6 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
           name: food.name,
           price: food.price,
           icon: food.icon,
+          backendMenuItemId: food.backendId,
         ),
       ),
     );
@@ -250,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFFFF8A00),
         automaticallyImplyLeading: false,
 
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -262,7 +266,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Text(
-              "PES University • Student",
+              widget.role == "Student"
+                  ? '${ApiService.studentProgram ?? "Student"} • ${ApiService.studentStatus ?? "ACTIVE"}'
+                  : '${ApiService.facultyProgram ?? "Faculty"} • Faculty',
               style: TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ],
@@ -364,8 +370,8 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-              const Text(
-                "Hey Student! 👋",
+              Text(
+                "Hey ${widget.role == "Student" ? (ApiService.studentName ?? "Student") : (ApiService.facultyName ?? "Faculty")}! 👋",
                 style: TextStyle(
                   color: Colors.grey,
                   fontSize: 15,

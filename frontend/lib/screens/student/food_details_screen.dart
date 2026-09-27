@@ -10,6 +10,7 @@ class FoodDetailsScreen extends StatefulWidget {
   final String price;
   final IconData icon;
   final int? menuItemId;
+  final String? backendMenuItemId;
 
   // Optional cafeteria.
   // Existing calls using only name, price and icon will still work.
@@ -21,6 +22,7 @@ class FoodDetailsScreen extends StatefulWidget {
     required this.price,
     required this.icon,
     this.menuItemId,
+    this.backendMenuItemId,
     this.cafeteria = 'Bengaluru Cafe',
   });
 
@@ -89,6 +91,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
 
     final item = CartItem(
       menuItemId: widget.menuItemId,
+      backendMenuItemId: widget.backendMenuItemId,
       name: widget.name,
       price: numericPrice,
       quantity: quantity,

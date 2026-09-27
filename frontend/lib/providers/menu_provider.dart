@@ -50,6 +50,7 @@ class MenuProvider extends ChangeNotifier {
 
         final food = FoodModel(
           id: item['id'] == null ? null : int.tryParse(item['id'].toString()),
+          backendId: item['_id']?.toString(),
 
           name: item['name']?.toString() ?? 'Unknown Food',
 

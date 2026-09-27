@@ -5,8 +5,21 @@ import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
 import 'order_tracking_screen.dart';
 
-class OrderHistoryScreen extends StatelessWidget {
+class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
+
+  @override
+  State<OrderHistoryScreen> createState() => _OrderHistoryScreenState();
+}
+
+class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrderProvider>().loadOrders(studentOnly: true);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,146 +27,168 @@ class OrderHistoryScreen extends StatelessWidget {
 
     final orders = orderProvider.orders;
 
+    Widget body;
+    if (orderProvider.isLoading && orders.isEmpty) {
+      body = const Center(child: CircularProgressIndicator());
+    } else if (orderProvider.error != null && orders.isEmpty) {
+      body = Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 12),
+              Text(orderProvider.error!, textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () =>
+                  orderProvider.loadOrders(studentOnly: true),
+                child: const Text('RETRY'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (orders.isEmpty) {
+      body = const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.receipt_long, size: 80, color: Colors.grey),
+            SizedBox(height: 15),
+            Text(
+              "No Orders Yet",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "Your orders will appear here.",
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    } else {
+      body = ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          return _buildOrderCard(context, orders[index]);
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Order History"),
         backgroundColor: Colors.orange,
       ),
 
-      body: orders.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.receipt_long, size: 80, color: Colors.grey),
+      body: body,
+    );
+  }
 
-                  SizedBox(height: 15),
+  Widget _buildOrderCard(BuildContext context, Map<String, dynamic> orderData) {
+    final order = OrderModel.fromMap(orderData);
+    return Card(
+      elevation: 4,
+
+      margin: const EdgeInsets.only(bottom: 15),
+
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+
+        child: Column(
+          children: [
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.orange,
+
+                child: Icon(Icons.restaurant, color: Colors.white),
+              ),
+
+              title: Text(
+                order.foodName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+
+                children: [
+                  const SizedBox(height: 6),
 
                   Text(
-                    "No Orders Yet",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    "₹${order.total.toStringAsFixed(0)}",
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
 
-                  SizedBox(height: 8),
+                  const SizedBox(height: 4),
 
-                  Text(
-                    "Your orders will appear here.",
-                    style: TextStyle(color: Colors.grey),
+                  Text("Date: ${order.date}"),
+
+                  const SizedBox(height: 8),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+
+                    decoration: BoxDecoration(
+                      color: getStatusColor(order.status).withOpacity(0.12),
+
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+
+                    child: Text(
+                      order.status,
+                      style: TextStyle(
+                        color: getStatusColor(order.status),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: orders.length,
-
-              itemBuilder: (context, index) {
-                final order = OrderModel.fromMap(orders[index]);
-
-                return Card(
-                  elevation: 4,
-
-                  margin: const EdgeInsets.only(bottom: 15),
-
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const CircleAvatar(
-                            backgroundColor: Colors.orange,
-
-                            child: Icon(Icons.restaurant, color: Colors.white),
-                          ),
-
-                          title: Text(
-                            order.foodName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-
-                            children: [
-                              const SizedBox(height: 6),
-
-                              Text(
-                                "₹${order.total.toStringAsFixed(0)}",
-                                style: const TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-
-                              const SizedBox(height: 4),
-
-                              Text("Date: ${order.date}"),
-
-                              const SizedBox(height: 8),
-
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
-                                ),
-
-                                decoration: BoxDecoration(
-                                  color: getStatusColor(
-                                    order.status,
-                                  ).withOpacity(0.12),
-
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-
-                                child: Text(
-                                  order.status,
-                                  style: TextStyle(
-                                    color: getStatusColor(order.status),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 5),
-
-                        SizedBox(
-                          width: double.infinity,
-
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      OrderTrackingScreen(order: order),
-                                ),
-                              );
-                            },
-
-                            icon: const Icon(Icons.location_on),
-
-                            label: const Text("TRACK ORDER"),
-
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
             ),
+
+            const SizedBox(height: 5),
+
+            SizedBox(
+              width: double.infinity,
+
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderTrackingScreen(order: order),
+                    ),
+                  );
+                },
+
+                icon: const Icon(Icons.location_on),
+
+                label: const Text("TRACK ORDER"),
+
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -52,7 +52,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         item,
       ) {
         return {
-          "menuItemId": item.menuItemId,
+          "menuItemId": item.backendMenuItemId ?? item.menuItemId?.toString(),
           "name": item.name,
           "price": item.price,
           "quantity": item.quantity,
@@ -110,7 +110,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       // CHECK BACKEND RESPONSE
       // ==========================================================
 
-      if (result["success"] != true) {
+      if (result["success"] != true && result["order"] == null) {
         throw Exception(result["message"] ?? "Failed to place order");
       }
 

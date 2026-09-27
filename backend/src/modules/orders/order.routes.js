@@ -26,6 +26,12 @@ router.get(
   orderController.getMyOrders
 );
 
+router.get(
+  "/all",
+  requireRole(ROLES.ADMIN, ROLES.KITCHEN, ROLES.FACULTY),
+  orderController.getAllOrders
+);
+
 // IMPORTANT: keep /:id/eta BEFORE /:id
 router.get(
   "/:id/eta",

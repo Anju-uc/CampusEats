@@ -48,12 +48,14 @@ function validateOrderId(orderId) {
   }
 }
 
-async function createOrder(userId, notes = "") {
+async function createOrder(userId, notes = "", requestedItems = []) {
   await ensureActiveStudent(userId);
 
   const cart = await getCartsCollection().findOne({ userId });
 
-  if (!cart || !cart.items || cart.items.length === 0) {
+  const sourceItems = cart?.items?.length ? cart.items : requestedItems;
+
+  if (!Array.isArray(sourceItems) || sourceItems.length === 0) {
     const error = new Error("Cart is empty");
     error.statusCode = 400;
     throw error;
@@ -62,10 +64,19 @@ async function createOrder(userId, notes = "") {
   const orderItems = [];
   let total = 0;
 
-  for (const cartItem of cart.items) {
-    const menuItem = await getMenuCollection().findOne({
-      _id: cartItem.menuItemId,
-    });
+  for (const cartItem of sourceItems) {
+    const menuItemQuery = ObjectId.isValid(String(cartItem.menuItemId))
+      ? { _id: new ObjectId(String(cartItem.menuItemId)) }
+      : { name: String(cartItem.name || "").trim() };
+    const menuItem = await getMenuCollection().findOne(menuItemQuery);
+
+    const quantity = Number(cartItem.quantity);
+
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+      const error = new Error("Order item quantity is invalid");
+      error.statusCode = 400;
+      throw error;
+    }
 
     if (!menuItem) {
       const error = new Error(
@@ -83,13 +94,13 @@ async function createOrder(userId, notes = "") {
       throw error;
     }
 
-    const subtotal = menuItem.price * cartItem.quantity;
+    const subtotal = menuItem.price * quantity;
 
     orderItems.push({
       menuItemId: menuItem._id,
       name: menuItem.name,
       price: menuItem.price,
-      quantity: cartItem.quantity,
+      quantity,
       subtotal,
     });
 
@@ -138,6 +149,13 @@ async function createOrder(userId, notes = "") {
 async function getMyOrders(userId) {
   return getOrdersCollection()
     .find({ userId })
+    .sort({ createdAt: -1 })
+    .toArray();
+}
+
+async function getAllOrders() {
+  return getOrdersCollection()
+    .find({})
     .sort({ createdAt: -1 })
     .toArray();
 }
@@ -255,6 +273,7 @@ async function cancelOrder(userId, orderId) {
 module.exports = {
   createOrder,
   getMyOrders,
+  getAllOrders,
   getOrderById,
   updateOrderStatus,
   cancelOrder,

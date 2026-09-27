@@ -5,7 +5,9 @@ import '../kitchen/kitchen_dashboard.dart';
 import '../kitchen/admin_dashboard.dart';
 import '../../services/api_service.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/cart_provider.dart';
 import 'package:provider/provider.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final String role;
@@ -104,7 +106,9 @@ class _LoginScreenState extends State<LoginScreen> {
   // =====================================================
 
   Future<void> login() async {
-    final id = idController.text.trim().toLowerCase();
+    final id = widget.role == "Student"
+        ? idController.text.trim().toUpperCase()
+        : idController.text.trim().toLowerCase();
     final password = passwordController.text.trim();
 
     if (id.isEmpty || password.isEmpty) {
@@ -122,13 +126,16 @@ class _LoginScreenState extends State<LoginScreen> {
         if (result['success'] != true) {
           throw Exception('Invalid cafeteria admin credentials');
         }
+      } else if (widget.role == "Student") {
+        await ApiService.loginStudent(id, password);
+        await ApiService.clearFacultySession();
+        ApiService.clearAdminSession();
+        await context.read<CartProvider>().switchSession(
+          'student:${ApiService.studentUid ?? ApiService.studentId}',
+          useBackend: true,
+        );
       } else {
-        final valid = widget.role == "Student"
-            ? (id == "student" ||
-                      id == "student@pes.edu" ||
-                      id.startsWith("pes")) &&
-                  password == "1234"
-            : widget.role == "Teacher"
+        final valid = widget.role == "Teacher"
             ? (id == "teacher" ||
                       id == "teacher@pes.edu" ||
                       id.startsWith("faculty")) &&
@@ -136,6 +143,16 @@ class _LoginScreenState extends State<LoginScreen> {
             : (id == "kitchen" || id == "kitchen@campuseats.com") &&
                   password == "1234";
         if (!valid) throw Exception('Invalid ${widget.role} credentials');
+        if (widget.role == "Teacher") {
+          await ApiService.loginFaculty(id);
+          await ApiService.clearStudentSession();
+          ApiService.clearAdminSession();
+          await context.read<CartProvider>().switchSession('faculty:$id');
+        } else {
+          await ApiService.clearStudentSession();
+          await ApiService.clearFacultySession();
+          await context.read<CartProvider>().switchSession('kitchen:$id');
+        }
       }
       setState(() {
         isLoading = false;
@@ -148,7 +165,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (widget.role == "Student" || widget.role == "Teacher") {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(role: widget.role),
+          ),
         );
       } else if (widget.role == "Kitchen Staff") {
         Navigator.pushReplacement(
@@ -473,6 +492,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 25),
 
+              if (widget.role == "Student") ...[
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                  child: const Text("Create Student Account"),
+                ),
+                const SizedBox(height: 8),
+              ],
+
               // =================================================
               // DEMO ACCOUNT INFORMATION
               // =================================================
@@ -545,7 +581,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return "Example: bengaluru@campuseats.com";
 
       default:
-        return "Example: student";
+        return "Example: PES1UG24CA017";
     }
   }
 

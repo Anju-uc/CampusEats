@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -12,18 +13,290 @@ class ApiService {
   // ============================================================
 
   // Android Emulator -> PC localhost
-  static const String baseUrl = 'http://localhost:5000';
+  static const String baseUrl = 'http://localhost:5000/api';
   static String? adminEmail;
   static String? adminToken;
   static String? adminCafeteria;
   static String? adminCafeteriaId;
   static String? adminTitle;
+  static String? studentId;
+  static String? studentUid;
+  static String? studentName;
+  static String? studentProgram;
+  static String? studentStatus;
+  static String? studentRole;
+  static String? studentToken;
+  static String? studentRefreshToken;
+  static String? studentExpiresIn;
+  static String? facultyId;
+  static String? facultyName;
+  static String? facultyProgram;
+  static String? facultyRole;
   static const _secureStorage = FlutterSecureStorage();
 
   static Map<String, String> get _headers => {
     'Content-Type': 'application/json',
-    if (adminToken != null) 'Authorization': 'Bearer $adminToken',
+    if (studentToken != null)
+      'Authorization': 'Bearer $studentToken'
+    else if (adminToken != null)
+      'Authorization': 'Bearer $adminToken',
   };
+
+  static Future<Map<String, dynamic>> loginStudent(
+    String rawStudentId,
+    String password,
+  ) async {
+    final normalizedStudentId = rawStudentId.trim().toUpperCase();
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'studentId': normalizedStudentId,
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
+      final data = decoded is Map<String, dynamic> && decoded['data'] is Map
+          ? Map<String, dynamic>.from(decoded['data'] as Map)
+          : decoded is Map<String, dynamic>
+          ? decoded
+          : null;
+
+      if (response.statusCode == 200 && data != null) {
+        final idToken = data['idToken']?.toString();
+        if (idToken == null || idToken.isEmpty) {
+          throw Exception('Login did not return a session token');
+        }
+
+        studentId = data['studentId']?.toString() ?? normalizedStudentId;
+        studentUid = data['uid']?.toString();
+        studentName = data['name']?.toString();
+        studentProgram = data['program']?.toString();
+        studentStatus = data['status']?.toString();
+        studentRole = data['role']?.toString();
+        studentToken = idToken;
+        studentRefreshToken = data['refreshToken']?.toString();
+        studentExpiresIn = data['expiresIn']?.toString();
+
+        await _secureStorage.write(
+          key: 'student_id_token',
+          value: studentToken,
+        );
+        await _secureStorage.write(
+          key: 'student_refresh_token',
+          value: studentRefreshToken ?? '',
+        );
+        await _secureStorage.write(key: 'student_id', value: studentId ?? '');
+        await _secureStorage.write(key: 'student_uid', value: studentUid ?? '');
+        await _secureStorage.write(
+          key: 'student_name',
+          value: studentName ?? '',
+        );
+        await _secureStorage.write(
+          key: 'student_program',
+          value: studentProgram ?? '',
+        );
+        await _secureStorage.write(
+          key: 'student_status',
+          value: studentStatus ?? '',
+        );
+        await _secureStorage.write(
+          key: 'student_role',
+          value: studentRole ?? '',
+        );
+        await _secureStorage.write(
+          key: 'student_expires_in',
+          value: studentExpiresIn ?? '',
+        );
+        return data;
+      }
+
+      final message = decoded is Map && decoded['message'] != null
+          ? decoded['message'].toString()
+          : 'Student login failed';
+      throw Exception(message);
+    } on FormatException {
+      throw Exception('The server returned an invalid response');
+    } on TimeoutException {
+      throw Exception('The server took too long to respond');
+    } on http.ClientException {
+      throw Exception('Unable to reach CampusEATS. Check your connection.');
+    }
+  }
+
+  static Future<void> registerStudent(
+    String rawStudentId,
+    String password,
+  ) async {
+    final normalizedStudentId = rawStudentId.trim().toUpperCase();
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/auth/register'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'studentId': normalizedStudentId,
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      final decoded = response.body.isEmpty ? null : jsonDecode(response.body);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return;
+      }
+
+      final message = decoded is Map && decoded['message'] != null
+          ? decoded['message'].toString()
+          : 'Student registration failed';
+      throw Exception(message);
+    } on FormatException {
+      throw Exception('The server returned an invalid response');
+    } on TimeoutException {
+      throw Exception('The server took too long to respond');
+    } on http.ClientException {
+      throw Exception('Unable to reach CampusEATS. Check your connection.');
+    }
+  }
+
+  static Future<bool> restoreStudentSession() async {
+    studentToken = await _secureStorage.read(key: 'student_id_token');
+    studentRefreshToken = await _secureStorage.read(
+      key: 'student_refresh_token',
+    );
+    studentId = await _secureStorage.read(key: 'student_id');
+    studentUid = await _secureStorage.read(key: 'student_uid');
+    studentName = await _secureStorage.read(key: 'student_name');
+    studentProgram = await _secureStorage.read(key: 'student_program');
+    studentStatus = await _secureStorage.read(key: 'student_status');
+    studentRole = await _secureStorage.read(key: 'student_role');
+    studentExpiresIn = await _secureStorage.read(key: 'student_expires_in');
+    return studentToken != null && studentToken!.isNotEmpty;
+  }
+
+  static Future<void> loginFaculty(String rawFacultyId) async {
+    facultyId = rawFacultyId.trim();
+    facultyName = facultyId;
+    facultyProgram = 'Faculty';
+    facultyRole = 'Faculty';
+    await _secureStorage.write(key: 'faculty_id', value: facultyId ?? '');
+    await _secureStorage.write(key: 'faculty_name', value: facultyName ?? '');
+    await _secureStorage.write(key: 'faculty_program', value: facultyProgram ?? '');
+    await _secureStorage.write(key: 'faculty_role', value: facultyRole ?? '');
+  }
+
+  static Future<bool> restoreFacultySession() async {
+    facultyId = await _secureStorage.read(key: 'faculty_id');
+    facultyName = await _secureStorage.read(key: 'faculty_name');
+    facultyProgram = await _secureStorage.read(key: 'faculty_program');
+    facultyRole = await _secureStorage.read(key: 'faculty_role');
+    return facultyId != null && facultyId!.isNotEmpty;
+  }
+
+  static Future<void> clearFacultySession() async {
+    facultyId = null;
+    facultyName = null;
+    facultyProgram = null;
+    facultyRole = null;
+    await Future.wait([
+      _secureStorage.delete(key: 'faculty_id'),
+      _secureStorage.delete(key: 'faculty_name'),
+      _secureStorage.delete(key: 'faculty_program'),
+      _secureStorage.delete(key: 'faculty_role'),
+    ]);
+  }
+
+  static Future<List<Map<String, dynamic>>> getCart() async {
+    if (studentToken == null) {
+      throw Exception('Student session is required for the backend cart.');
+    }
+    final response = await http.get(
+      Uri.parse('$baseUrl/cart'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load cart: ${response.statusCode}');
+    }
+    final decoded = jsonDecode(response.body);
+    final data = decoded is Map ? decoded['data'] : decoded;
+    final items = data is Map ? data['items'] : data;
+    return items is List
+        ? items.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList()
+        : <Map<String, dynamic>>[];
+  }
+
+  static Future<void> addCartItem(String menuItemId, int quantity) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/cart/items'),
+      headers: _headers,
+      body: jsonEncode({'menuItemId': menuItemId, 'quantity': quantity}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update cart: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> updateCartItem(String menuItemId, int quantity) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/cart/items/$menuItemId'),
+      headers: _headers,
+      body: jsonEncode({'quantity': quantity}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update cart: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> removeCartItem(String menuItemId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/cart/items/$menuItemId'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to remove cart item: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> clearBackendCart() async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/cart'),
+      headers: _headers,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to clear cart: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> clearStudentSession() async {
+    studentId = null;
+    studentUid = null;
+    studentName = null;
+    studentProgram = null;
+    studentStatus = null;
+    studentRole = null;
+    studentToken = null;
+    studentRefreshToken = null;
+    studentExpiresIn = null;
+
+    await Future.wait([
+      _secureStorage.delete(key: 'student_id_token'),
+      _secureStorage.delete(key: 'student_refresh_token'),
+      _secureStorage.delete(key: 'student_id'),
+      _secureStorage.delete(key: 'student_uid'),
+      _secureStorage.delete(key: 'student_name'),
+      _secureStorage.delete(key: 'student_program'),
+      _secureStorage.delete(key: 'student_status'),
+      _secureStorage.delete(key: 'student_role'),
+      _secureStorage.delete(key: 'student_expires_in'),
+    ]);
+  }
 
   static Future<Map<String, dynamic>> loginAdmin(
     String email,
@@ -90,9 +363,7 @@ class ApiService {
     return adminToken != null && adminToken!.isNotEmpty;
   }
 
-  static void startDemoKitchenSession({
-    String cafeteria = 'Bengaluru Cafe',
-  }) {
+  static void startDemoKitchenSession({String cafeteria = 'Bengaluru Cafe'}) {
     adminEmail = 'kitchen@$cafeteria';
     adminToken = 'demo-kitchen-token';
     adminCafeteria = cafeteria;
@@ -109,7 +380,10 @@ class ApiService {
   // ============================================================
 
   static Future<List<dynamic>> getMenu() async {
-    if (demoMode) return DemoService.getMenu(cafeteria: adminEmail == null ? null : adminCafeteria);
+    if (demoMode)
+      return DemoService.getMenu(
+        cafeteria: adminEmail == null ? null : adminCafeteria,
+      );
     final response = await http.get(
       Uri.parse('$baseUrl/menu'),
       headers: _headers,
@@ -139,7 +413,8 @@ class ApiService {
   static Future<Map<String, dynamic>> addMenuItem(
     Map<String, dynamic> food,
   ) async {
-    if (demoMode) return DemoService.addMenuItem(food, adminCafeteria ?? 'Bengaluru Cafe');
+    if (demoMode)
+      return DemoService.addMenuItem(food, adminCafeteria ?? 'Bengaluru Cafe');
     final response = await http.post(
       Uri.parse('$baseUrl/menu'),
       headers: _headers,
@@ -171,7 +446,12 @@ class ApiService {
     int id,
     Map<String, dynamic> food,
   ) async {
-    if (demoMode) return DemoService.updateMenuItem(id, food, adminCafeteria ?? 'Bengaluru Cafe');
+    if (demoMode)
+      return DemoService.updateMenuItem(
+        id,
+        food,
+        adminCafeteria ?? 'Bengaluru Cafe',
+      );
     final response = await http.put(
       Uri.parse('$baseUrl/menu/$id'),
       headers: _headers,
@@ -200,7 +480,8 @@ class ApiService {
   // ============================================================
 
   static Future<Map<String, dynamic>> deleteMenuItem(int id) async {
-    if (demoMode) return DemoService.deleteMenuItem(id, adminCafeteria ?? 'Bengaluru Cafe');
+    if (demoMode)
+      return DemoService.deleteMenuItem(id, adminCafeteria ?? 'Bengaluru Cafe');
     final response = await http.delete(
       Uri.parse('$baseUrl/menu/$id'),
       headers: _headers,
@@ -235,7 +516,12 @@ class ApiService {
     int id,
     bool isAvailable,
   ) async {
-    if (demoMode) return DemoService.updateAvailability(id, isAvailable, adminCafeteria ?? 'Bengaluru Cafe');
+    if (demoMode)
+      return DemoService.updateAvailability(
+        id,
+        isAvailable,
+        adminCafeteria ?? 'Bengaluru Cafe',
+      );
     final response = await http.patch(
       Uri.parse('$baseUrl/menu/$id/availability'),
       headers: _headers,
@@ -265,7 +551,9 @@ class ApiService {
 
   static Future<List<dynamic>> getCafeterias() async {
     if (demoMode) {
-      return DemoService.cafeterias.map((name) => {'id': name, 'name': name}).toList();
+      return DemoService.cafeterias
+          .map((name) => {'id': name, 'name': name})
+          .toList();
     }
     final response = await http.get(Uri.parse('$baseUrl/cafeterias'));
 
@@ -300,7 +588,7 @@ class ApiService {
   static Future<Map<String, dynamic>> placeOrder(
     Map<String, dynamic> order,
   ) async {
-    if (demoMode) return DemoService.placeOrder(order);
+    if (demoMode && studentToken == null) return DemoService.placeOrder(order);
     final response = await http.post(
       Uri.parse('$baseUrl/orders'),
       headers: _headers,
@@ -310,6 +598,13 @@ class ApiService {
     if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
       if (data is Map<String, dynamic>) {
+        if (data['data'] is Map) {
+          return {
+            'success': true,
+            'order': Map<String, dynamic>.from(data['data'] as Map),
+            ...data,
+          };
+        }
         return data;
       }
     }
@@ -327,7 +622,8 @@ class ApiService {
   // ============================================================
 
   static Future<List<dynamic>> getOrders() async {
-    if (demoMode) return DemoService.getOrders(adminCafeteria ?? 'Bengaluru Cafe');
+    if (demoMode)
+      return DemoService.getOrders(adminCafeteria ?? 'Bengaluru Cafe');
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/orders'),
@@ -356,6 +652,54 @@ class ApiService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  static Future<List<dynamic>> getStudentOrders() async {
+    if (studentToken == null) {
+      throw Exception('Student session expired. Please log in again.');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/orders'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      final data = decoded is Map ? decoded['data'] : decoded;
+      return data is List ? List<dynamic>.from(data) : <dynamic>[];
+    }
+
+    if (response.statusCode == 401) {
+      await clearStudentSession();
+      throw Exception('Student session expired. Please log in again.');
+    }
+
+    throw Exception('Failed to load student orders: ${response.statusCode}');
+  }
+
+  static Future<List<dynamic>> getStaffOrders() async {
+    if (adminToken == null || adminToken!.isEmpty) {
+      throw Exception('Staff session expired. Please log in again.');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/orders/all'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      final data = decoded is Map ? decoded['data'] : decoded;
+      return data is List ? List<dynamic>.from(data) : <dynamic>[];
+    }
+
+    if (response.statusCode == 401) {
+      clearAdminSession();
+      throw Exception('Staff session expired. Please log in again.');
+    }
+
+    throw Exception('Failed to load staff orders: ${response.statusCode}');
   }
 
   static String _expireAdminSession() {
@@ -506,11 +850,16 @@ class ApiService {
   // ============================================================
 
   static Future<Map<String, dynamic>> updateOrderStatus(
-    int orderId,
+    String orderId,
     String status,
   ) async {
-    if (demoMode) return DemoService.updateOrderStatus(orderId, status, adminCafeteria ?? 'Bengaluru Cafe');
-    final response = await http.put(
+    if (demoMode)
+      return DemoService.updateOrderStatus(
+        int.tryParse(orderId) ?? 0,
+        status,
+        adminCafeteria ?? 'Bengaluru Cafe',
+      );
+    final response = await http.patch(
       Uri.parse('$baseUrl/orders/$orderId/status'),
       headers: _headers,
       body: jsonEncode({'status': status}),
@@ -545,7 +894,7 @@ class ApiService {
   // DELETE ORDER
   // ============================================================
 
-  static Future<Map<String, dynamic>> deleteOrder(int orderId) async {
+  static Future<Map<String, dynamic>> deleteOrder(String orderId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/orders/$orderId'),
       headers: _headers,
@@ -577,7 +926,8 @@ class ApiService {
   // ============================================================
 
   static Future<Map<String, dynamic>> getAnalytics() async {
-    if (demoMode) return DemoService.analytics(adminCafeteria ?? 'Bengaluru Cafe');
+    if (demoMode)
+      return DemoService.analytics(adminCafeteria ?? 'Bengaluru Cafe');
     final response = await http.get(
       Uri.parse('$baseUrl/analytics'),
       headers: _headers,

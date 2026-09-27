@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../kitchen/kitchen_dashboard.dart';
 import 'login_screen.dart';
 import '../../services/api_service.dart';
+import '../../providers/cart_provider.dart';
+import 'package:provider/provider.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -14,6 +16,9 @@ class RoleSelectionScreen extends StatelessWidget {
         MaterialPageRoute(builder: (context) => LoginScreen(role: role)),
       );
     } else if (role == "Kitchen Staff") {
+      ApiService.clearStudentSession();
+      ApiService.clearFacultySession();
+      context.read<CartProvider>().switchSession('kitchen');
       ApiService.startDemoKitchenSession();
       Navigator.push(
         context,

@@ -181,6 +181,33 @@ test("missing, invalid, expired, and replayed proofs are rejected", async () => 
   assert.equal(replayResponse.statusCode, 403);
 });
 
+test("missing campus configuration returns 503", async () => {
+  const originalSecret = process.env.CAMPUS_ACCESS_SECRET;
+  const originalCampusId = process.env.CAMPUS_ID;
+  delete process.env.CAMPUS_ACCESS_SECRET;
+  delete process.env.CAMPUS_ID;
+  const requireCampusAccess = loadCampusMiddleware({ insertOne: async () => {} });
+  const response = makeResponse();
+
+  await requireCampusAccess(
+    { user: { uid: "active", role: "Student", status: "ACTIVE" }, headers: {} },
+    response,
+    () => assert.fail("missing configuration must not call next")
+  );
+
+  assert.equal(response.statusCode, 503);
+  if (originalSecret === undefined) {
+    delete process.env.CAMPUS_ACCESS_SECRET;
+  } else {
+    process.env.CAMPUS_ACCESS_SECRET = originalSecret;
+  }
+  if (originalCampusId === undefined) {
+    delete process.env.CAMPUS_ID;
+  } else {
+    process.env.CAMPUS_ID = originalCampusId;
+  }
+});
+
 test("a campus proof for student A cannot be used by student B", async () => {
   process.env.CAMPUS_ACCESS_SECRET = "test-campus-secret";
   process.env.CAMPUS_ID = "pes-bangalore";

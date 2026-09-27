@@ -1,5 +1,6 @@
 class FoodModel {
   final int? id;
+  final String? backendId;
 
   final String name;
   final double price;
@@ -12,6 +13,7 @@ class FoodModel {
 
   FoodModel({
     this.id,
+    this.backendId,
     required this.name,
     required this.price,
     required this.description,

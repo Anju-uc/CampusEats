@@ -54,11 +54,37 @@ test("authentication rate limiter rejects requests after the configured limit", 
   assert.equal(blocked.headers["Retry-After"] !== undefined, true);
 });
 
-test("CORS allows configured localhost origins and rejects unknown origins", () => {
+test("CORS allows dynamic localhost development ports and rejects unknown origins", () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  delete process.env.NODE_ENV;
+
   assert.equal(isAllowedOrigin("http://localhost:3000"), true);
+  assert.equal(isAllowedOrigin("http://localhost:57800"), true);
   assert.equal(isAllowedOrigin("http://127.0.0.1:5000"), true);
+  assert.equal(isAllowedOrigin("http://127.0.0.1:57800"), true);
   assert.equal(isAllowedOrigin("https://untrusted.example"), false);
+  assert.equal(isAllowedOrigin("*"), false);
   assert.equal(isAllowedOrigin(undefined), true);
+
+  if (originalNodeEnv === undefined) {
+    delete process.env.NODE_ENV;
+  } else {
+    process.env.NODE_ENV = originalNodeEnv;
+  }
+});
+
+test("CORS keeps dynamic localhost ports disabled in production", () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = "production";
+
+  assert.equal(isAllowedOrigin("http://localhost:57800"), false);
+  assert.equal(isAllowedOrigin("http://127.0.0.1:57800"), false);
+
+  if (originalNodeEnv === undefined) {
+    delete process.env.NODE_ENV;
+  } else {
+    process.env.NODE_ENV = originalNodeEnv;
+  }
 });
 
 test("src/server.js is the only active backend deployment entry point", () => {

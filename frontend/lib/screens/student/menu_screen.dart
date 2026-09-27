@@ -117,6 +117,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
     final item = CartItem(
       menuItemId: food.id,
+      backendMenuItemId: food.backendId,
       name: food.name,
       price: food.price,
       quantity: 1,

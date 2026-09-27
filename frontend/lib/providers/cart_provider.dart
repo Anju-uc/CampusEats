@@ -1,10 +1,56 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/cart_item.dart';
+import '../services/api_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
+  String? _sessionKey;
+  bool _backendMode = false;
+  String? _error;
 
   List<CartItem> get items => List.unmodifiable(_items);
+  String? get error => _error;
+
+  Future<void> switchSession(
+    String sessionKey, {
+    bool useBackend = false,
+  }) async {
+    _sessionKey = sessionKey;
+    _backendMode = useBackend;
+    _items.clear();
+    _error = null;
+    notifyListeners();
+
+    if (_backendMode) {
+      try {
+        final backendItems = await ApiService.getCart();
+        _items.addAll(
+          backendItems.map(
+            (item) => CartItem(
+              backendMenuItemId: item['menuItemId']?.toString(),
+              name: item['name']?.toString() ?? 'Menu item',
+              image: item['imageUrl']?.toString() ?? '',
+              price: double.tryParse(item['price']?.toString() ?? '') ?? 0,
+              quantity: int.tryParse(item['quantity']?.toString() ?? '') ?? 1,
+            ),
+          ),
+        );
+      } catch (error) {
+        _error = error.toString();
+      }
+      notifyListeners();
+    }
+  }
+
+  void clearSession() {
+    _sessionKey = null;
+    _backendMode = false;
+    _items.clear();
+    _error = null;
+    notifyListeners();
+  }
 
   // ============================================================
   // NUMBER OF ITEMS
@@ -54,6 +100,16 @@ class CartProvider extends ChangeNotifier {
       _items.add(item);
     }
 
+    if (_backendMode && item.backendMenuItemId != null) {
+      unawaited(
+        ApiService.addCartItem(item.backendMenuItemId!, item.quantity)
+            .catchError((error) {
+          _error = error.toString();
+          notifyListeners();
+        }),
+      );
+    }
+
     notifyListeners();
     return true;
   }
@@ -64,6 +120,14 @@ class CartProvider extends ChangeNotifier {
 
   void removeItem(CartItem item) {
     _items.remove(item);
+    if (_backendMode && item.backendMenuItemId != null) {
+      unawaited(
+        ApiService.removeCartItem(item.backendMenuItemId!).catchError((error) {
+          _error = error.toString();
+          notifyListeners();
+        }),
+      );
+    }
     notifyListeners();
   }
 
@@ -73,6 +137,15 @@ class CartProvider extends ChangeNotifier {
 
   void increaseQuantity(CartItem item) {
     item.quantity++;
+    if (_backendMode && item.backendMenuItemId != null) {
+      unawaited(
+        ApiService.updateCartItem(item.backendMenuItemId!, item.quantity)
+            .catchError((error) {
+          _error = error.toString();
+          notifyListeners();
+        }),
+      );
+    }
     notifyListeners();
   }
 
@@ -87,6 +160,25 @@ class CartProvider extends ChangeNotifier {
       _items.remove(item);
     }
 
+    if (_backendMode && item.backendMenuItemId != null) {
+      if (_items.contains(item)) {
+        unawaited(
+          ApiService.updateCartItem(item.backendMenuItemId!, item.quantity)
+              .catchError((error) {
+            _error = error.toString();
+            notifyListeners();
+          }),
+        );
+      } else {
+        unawaited(
+          ApiService.removeCartItem(item.backendMenuItemId!).catchError((error) {
+            _error = error.toString();
+            notifyListeners();
+          }),
+        );
+      }
+    }
+
     notifyListeners();
   }
 
@@ -96,6 +188,12 @@ class CartProvider extends ChangeNotifier {
 
   void clearCart() {
     _items.clear();
+    if (_backendMode) {
+      unawaited(ApiService.clearBackendCart().catchError((error) {
+        _error = error.toString();
+        notifyListeners();
+      }));
+    }
     notifyListeners();
   }
 }
