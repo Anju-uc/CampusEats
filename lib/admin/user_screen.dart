@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 
 class UserScreen extends StatefulWidget {
-  const UserScreen({super.key});
+  final String cafeteriaId;
+  final String cafeteriaName;
+
+  const UserScreen({
+    super.key,
+    required this.cafeteriaId,
+    required this.cafeteriaName,
+  });
 
   @override
   State<UserScreen> createState() => _UserScreenState();
@@ -31,6 +38,19 @@ class _UserScreenState extends State<UserScreen> {
       for (final order in orders) {
         if (order is! Map) continue;
 
+        final cafeteria =
+            order['cafeteria']?.toString() ??
+            order['cafeteriaName']?.toString() ??
+            order['restaurant']?.toString() ??
+            order['restaurantName']?.toString() ??
+            '';
+
+        if (cafeteria.isNotEmpty &&
+            cafeteria.toLowerCase() !=
+                widget.cafeteriaName.toLowerCase()) {
+          continue;
+        }
+
         final name =
             order['student_name']?.toString() ??
             order['studentName']?.toString() ??
@@ -43,14 +63,23 @@ class _UserScreenState extends State<UserScreen> {
             order['email']?.toString() ??
             'No email';
 
+        final rollNumber =
+            order['rollNumber']?.toString() ??
+            order['roll_number']?.toString() ??
+            order['student_roll']?.toString() ??
+            '';
+
         final key = email != 'No email'
             ? email
-            : name;
+            : rollNumber.isNotEmpty
+                ? rollNumber
+                : name;
 
         if (!uniqueUsers.containsKey(key)) {
           uniqueUsers[key] = {
             'name': name,
             'email': email,
+            'rollNumber': rollNumber,
             'orders': 1,
           };
         } else {
@@ -83,9 +112,15 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget userCard(Map<String, dynamic> user) {
-    final name = user['name']?.toString() ?? 'Student';
+    final name =
+        user['name']?.toString() ?? 'Student';
+
     final email =
         user['email']?.toString() ?? 'No email';
+
+    final rollNumber =
+        user['rollNumber']?.toString() ?? '';
+
     final orderCount =
         user['orders']?.toString() ?? '0';
 
@@ -115,6 +150,11 @@ class _UserScreenState extends State<UserScreen> {
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
+              if (rollNumber.isNotEmpty)
+                Text(
+                  'Roll Number: $rollNumber',
+                ),
+              const SizedBox(height: 4),
               Text(email),
               const SizedBox(height: 4),
               Text(
@@ -135,9 +175,9 @@ class _UserScreenState extends State<UserScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Users',
-          style: TextStyle(
+        title: Text(
+          '${widget.cafeteriaName} Users',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -148,51 +188,87 @@ class _UserScreenState extends State<UserScreen> {
           ),
         ],
       ),
-      body: loading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : users.isEmpty
-              ? RefreshIndicator(
-                  onRefresh: loadUsers,
-                  child: ListView(
-                    children: const [
-                      SizedBox(height: 180),
-                      Icon(
-                        Icons.people_outline,
-                        size: 60,
-                      ),
-                      SizedBox(height: 15),
-                      Center(
-                        child: Text(
-                          'No users found',
-                          style: TextStyle(
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: loadUsers,
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Text(
-                        '${users.length} Students',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      ...users.map(
-                        (user) => userCard(user),
-                      ),
-                    ],
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            color: Colors.orange.shade50,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.restaurant,
+                  color: Colors.orange,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    widget.cafeteriaName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
+                Text(
+                  '${users.length} students',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: loading
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : users.isEmpty
+                    ? RefreshIndicator(
+                        onRefresh: loadUsers,
+                        child: ListView(
+                          children: const [
+                            SizedBox(height: 160),
+                            Icon(
+                              Icons.people_outline,
+                              size: 60,
+                            ),
+                            SizedBox(height: 15),
+                            Center(
+                              child: Text(
+                                'No users found',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: loadUsers,
+                        child: ListView(
+                          padding:
+                              const EdgeInsets.all(16),
+                          children: [
+                            Text(
+                              '${users.length} Students',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            ...users.map(
+                              (user) => userCard(user),
+                            ),
+                          ],
+                        ),
+                      ),
+          ),
+        ],
+      ),
     );
   }
 }
