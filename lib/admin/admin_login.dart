@@ -15,20 +15,38 @@ class _AdminLoginState extends State<AdminLogin> {
   bool obscurePassword = true;
 
   void login() {
-    final username = usernameController.text.trim();
+    final username = usernameController.text.trim().toLowerCase();
     final password = passwordController.text.trim();
 
-    if (username == 'admin' && password == 'admin123') {
+    String? cafeteriaName;
+    String? cafeteriaId;
+
+    if (username == 'bengaluru_admin' && password == 'admin123') {
+      cafeteriaId = 'bengaluru_cafe';
+      cafeteriaName = 'Bengaluru Cafe';
+    } else if (username == 'pesu_admin' && password == 'admin123') {
+      cafeteriaId = 'cafe_pesu';
+      cafeteriaName = 'Cafe PESU';
+    } else if (username == 'nonveg_admin' && password == 'admin123') {
+      cafeteriaId = 'nonveg_cafeteria';
+      cafeteriaName = 'Non-Veg Cafeteria';
+    }
+
+    if (cafeteriaId != null && cafeteriaName != null) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const AdminScreen(),
+          builder: (context) => AdminScreen(
+            cafeteriaId: cafeteriaId!,
+            cafeteriaName: cafeteriaName!,
+          ),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Invalid admin username or password'),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -44,16 +62,21 @@ class _AdminLoginState extends State<AdminLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: const Color(0xFFFFF8F1),
       appBar: AppBar(
         title: const Text('Admin Login'),
         centerTitle: true,
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
       ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Card(
-            elevation: 4,
+            elevation: 5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -64,9 +87,7 @@ class _AdminLoginState extends State<AdminLogin> {
                     size: 70,
                     color: Colors.orange,
                   ),
-
                   const SizedBox(height: 16),
-
                   const Text(
                     'CampusEATS Admin',
                     style: TextStyle(
@@ -74,19 +95,15 @@ class _AdminLoginState extends State<AdminLogin> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   const Text(
-                    'Login to manage cafeteria orders',
+                    'Login to manage your cafeteria',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey,
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
                   TextField(
                     controller: usernameController,
                     decoration: const InputDecoration(
@@ -95,12 +112,11 @@ class _AdminLoginState extends State<AdminLogin> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   TextField(
                     controller: passwordController,
                     obscureText: obscurePassword,
+                    onSubmitted: (_) => login(),
                     decoration: InputDecoration(
                       labelText: 'Password',
                       prefixIcon: const Icon(Icons.lock),
@@ -119,14 +135,19 @@ class _AdminLoginState extends State<AdminLogin> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
                       onPressed: login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                       child: const Text(
                         'LOGIN',
                         style: TextStyle(
@@ -136,14 +157,37 @@ class _AdminLoginState extends State<AdminLogin> {
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 15),
-
-                  const Text(
-                    'Demo Login: admin / admin123',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Column(
+                      children: [
+                        Text(
+                          'Admin Accounts',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'bengaluru_admin / admin123',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        Text(
+                          'pesu_admin / admin123',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        Text(
+                          'nonveg_admin / admin123',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
                     ),
                   ),
                 ],
