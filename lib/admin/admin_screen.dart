@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dashbord_screen.dart';
+import 'menu_management.dart';
+import 'order_screen.dart';
+import 'user_screen.dart';
 
 class AdminScreen extends StatefulWidget {
   final String cafeteriaId;
@@ -15,106 +19,130 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _AdminScreenState extends State<AdminScreen> {
-  final List<Map<String, dynamic>> allOrders = [
-    {
-      'id': 1001,
-      'rollNumber': 'PESU001',
-      'cafeteria': 'Bengaluru Cafe',
-      'items': 'Masala Dosa x 2, Coffee x 1',
-      'total': 180.0,
-      'status': 'Preparing',
-    },
-    {
-      'id': 1002,
-      'rollNumber': 'PESU002',
-      'cafeteria': 'Cafe PESU',
-      'items': 'Pizza x 1, French Fries x 1',
-      'total': 250.0,
-      'status': 'Ready',
-    },
-    {
-      'id': 1003,
-      'rollNumber': 'PESU003',
-      'cafeteria': 'Non-Veg Cafeteria',
-      'items': 'Chicken Biryani x 1',
-      'total': 180.0,
-      'status': 'Completed',
-    },
-  ];
-
-  List<Map<String, dynamic>> get cafeteriaOrders {
-    return allOrders
-        .where((order) => order['cafeteria'] == widget.cafeteriaName)
-        .toList();
-  }
-
-  void updateStatus(int index, String status) {
-    final order = cafeteriaOrders[index];
-
-    setState(() {
-      order['status'] = status;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Order #${order['id']} marked as $status',
+  void openDashboard() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DashbordScreen(
+          cafeteriaId: widget.cafeteriaId,
+          cafeteriaName: widget.cafeteriaName,
         ),
       ),
     );
   }
 
-  Color getStatusColor(String status) {
-    switch (status) {
-      case 'Preparing':
-        return Colors.orange;
-      case 'Ready':
-        return Colors.blue;
-      case 'Completed':
-        return Colors.green;
-      case 'Cancelled':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
+  void openMenu() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MenuManagement(
+          restaurantId: widget.cafeteriaId,
+          restaurantName: widget.cafeteriaName,
+        ),
+      ),
+    );
   }
 
-  int get totalOrders => cafeteriaOrders.length;
-
-  int get pendingOrders {
-    return cafeteriaOrders
-        .where(
-          (order) =>
-              order['status'] != 'Completed' &&
-              order['status'] != 'Cancelled',
-        )
-        .length;
+  void openOrders() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderScreen(
+          cafeteriaId: widget.cafeteriaId,
+          cafeteriaName: widget.cafeteriaName,
+        ),
+      ),
+    );
   }
 
-  int get completedOrders {
-    return cafeteriaOrders
-        .where((order) => order['status'] == 'Completed')
-        .length;
+  void openUsers() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserScreen(
+          cafeteriaId: widget.cafeteriaId,
+          cafeteriaName: widget.cafeteriaName,
+        ),
+      ),
+    );
   }
 
-  double get revenue {
-    return cafeteriaOrders
-        .where((order) => order['status'] != 'Cancelled')
-        .fold(
-          0.0,
-          (sum, order) => sum + (order['total'] as double),
-        );
+  Widget managementCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.only(bottom: 14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 18,
+                color: Colors.grey,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final orders = cafeteriaOrders;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
         title: Text(
-          widget.cafeteriaName,
+          '${widget.cafeteriaName} Admin',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
@@ -131,344 +159,131 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Admin Dashboard',
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  'Manage ${widget.cafeteriaName}',
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _statCard(
-                    'Orders',
-                    totalOrders.toString(),
-                    Icons.receipt_long,
-                    Colors.orange,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _statCard(
-                    'Pending',
-                    pendingOrders.toString(),
-                    Icons.pending_actions,
-                    Colors.blue,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _statCard(
-                    'Completed',
-                    completedOrders.toString(),
-                    Icons.check_circle,
-                    Colors.green,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Colors.green,
-                  child: Icon(
-                    Icons.currency_rupee,
-                    color: Colors.white,
-                  ),
-                ),
-                title: const Text(
-                  'Revenue',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  'Total completed/active orders',
-                ),
-                trailing: Text(
-                  '₹${revenue.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          Expanded(
-            child: orders.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No orders available',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
-                    itemCount: orders.length,
-                    itemBuilder: (context, index) {
-                      final order = orders[index];
-                      final String status = order['status'];
-
-                      return Card(
-                        margin: const EdgeInsets.only(
-                          bottom: 16,
-                        ),
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(18),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Order #${order['id']}',
-                                    style: const TextStyle(
-                                      fontSize: 19,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding:
-                                        const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: getStatusColor(status)
-                                          .withValues(alpha: 0.12),
-                                      borderRadius:
-                                          BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      status,
-                                      style: TextStyle(
-                                        color:
-                                            getStatusColor(status),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 15),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.person,
-                                    size: 20,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Roll No: ${order['rollNumber']}',
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.restaurant,
-                                    size: 20,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    widget.cafeteriaName,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                order['items'],
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              const SizedBox(height: 15),
-                              Text(
-                                '₹${order['total'].toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 15),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: () {
-                                    updateStatus(
-                                      index,
-                                      'Preparing',
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.restaurant,
-                                  ),
-                                  label: const Text(
-                                    'Preparing',
-                                  ),
-                                  style:
-                                      ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Colors.orange,
-                                    foregroundColor:
-                                        Colors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      onPressed: () {
-                                        updateStatus(
-                                          index,
-                                          'Ready',
-                                        );
-                                      },
-                                      child: const Text(
-                                        'Ready',
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: OutlinedButton(
-                                      onPressed: () {
-                                        updateStatus(
-                                          index,
-                                          'Completed',
-                                        );
-                                      },
-                                      child: const Text(
-                                        'Completed',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                width: double.infinity,
-                                child: TextButton(
-                                  onPressed: () {
-                                    updateStatus(
-                                      index,
-                                      'Cancelled',
-                                    );
-                                  },
-                                  child: const Text(
-                                    'Cancel Order',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 28,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.orange.shade700,
+                    Colors.orange.shade400,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.admin_panel_settings,
+                    color: Colors.white,
+                    size: 42,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Admin Dashboard',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    widget.cafeteriaName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Manage your cafeteria',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 22,
+            const SizedBox(height: 22),
+            const Text(
+              'Management',
+              style: TextStyle(
+                fontSize: 21,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
+            const SizedBox(height: 12),
+            managementCard(
+              icon: Icons.dashboard,
+              title: 'Dashboard',
+              subtitle:
+                  'View orders, revenue and cafeteria analytics',
+              color: Colors.orange,
+              onTap: openDashboard,
+            ),
+            managementCard(
+              icon: Icons.restaurant_menu,
+              title: 'Menu Management',
+              subtitle:
+                  'Add, edit, delete and manage food availability',
+              color: Colors.green,
+              onTap: openMenu,
+            ),
+            managementCard(
+              icon: Icons.receipt_long,
+              title: 'Order Management',
+              subtitle:
+                  'View and update customer orders',
+              color: Colors.blue,
+              onTap: openOrders,
+            ),
+            managementCard(
+              icon: Icons.people,
+              title: 'Users',
+              subtitle:
+                  'View students who ordered from this cafeteria',
+              color: Colors.purple,
+              onTap: openUsers,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.orange.shade100,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'You are logged in as ${widget.cafeteriaName} admin.',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
