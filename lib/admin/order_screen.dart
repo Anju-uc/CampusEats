@@ -3,7 +3,14 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 
 class OrderScreen extends StatefulWidget {
-  const OrderScreen({super.key});
+  final String cafeteriaId;
+  final String cafeteriaName;
+
+  const OrderScreen({
+    super.key,
+    required this.cafeteriaId,
+    required this.cafeteriaName,
+  });
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
@@ -36,8 +43,25 @@ class _OrderScreenState extends State<OrderScreen> {
 
       if (!mounted) return;
 
+      final allOrders = result.whereType<Map>().toList();
+
+      final cafeteriaOrders = allOrders.where((order) {
+        final cafeteria = order['cafeteria']?.toString() ??
+            order['cafeteriaName']?.toString() ??
+            order['restaurant']?.toString() ??
+            order['restaurantName']?.toString() ??
+            '';
+
+        if (cafeteria.isNotEmpty) {
+          return cafeteria.toLowerCase() ==
+              widget.cafeteriaName.toLowerCase();
+        }
+
+        return true;
+      }).toList();
+
       setState(() {
-        orders = result;
+        orders = cafeteriaOrders;
         loading = false;
       });
     } catch (e) {
@@ -62,7 +86,9 @@ class _OrderScreenState extends State<OrderScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Order #$id updated to $status'),
+          content: Text(
+            'Order #$id updated to $status',
+          ),
         ),
       );
     } catch (e) {
@@ -70,7 +96,9 @@ class _OrderScreenState extends State<OrderScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update order: $e'),
+          content: Text(
+            'Failed to update order: $e',
+          ),
         ),
       );
     }
@@ -82,14 +110,18 @@ class _OrderScreenState extends State<OrderScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete Order'),
-          content: Text('Delete order #$id?'),
+          content: Text(
+            'Delete order #$id?',
+          ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () =>
+                  Navigator.pop(context, false),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () =>
+                  Navigator.pop(context, true),
               child: const Text('Delete'),
             ),
           ],
@@ -115,7 +147,9 @@ class _OrderScreenState extends State<OrderScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to delete order: $e'),
+          content: Text(
+            'Failed to delete order: $e',
+          ),
         ),
       );
     }
@@ -161,6 +195,7 @@ class _OrderScreenState extends State<OrderScreen> {
         if (item is Map) {
           return item['name']?.toString() ?? 'Food';
         }
+
         return 'Food';
       }).join(', ');
     }
@@ -174,6 +209,7 @@ class _OrderScreenState extends State<OrderScreen> {
             if (item is Map) {
               return item['name']?.toString() ?? 'Food';
             }
+
             return 'Food';
           }).join(', ');
         }
@@ -185,7 +221,8 @@ class _OrderScreenState extends State<OrderScreen> {
       ).firstMatch(items);
 
       if (match != null) {
-        return match.group(1)?.trim() ?? 'Food Order';
+        return match.group(1)?.trim() ??
+            'Food Order';
       }
     }
 
@@ -198,19 +235,28 @@ class _OrderScreenState extends State<OrderScreen> {
     final totalAmount = order['total_amount'];
 
     if (totalAmount != null) {
-      return double.tryParse(totalAmount.toString()) ?? 0;
+      return double.tryParse(
+            totalAmount.toString(),
+          ) ??
+          0;
     }
 
     final total = order['total'];
 
     if (total != null) {
-      return double.tryParse(total.toString()) ?? 0;
+      return double.tryParse(
+            total.toString(),
+          ) ??
+          0;
     }
 
     final amount = order['amount'];
 
     if (amount != null) {
-      return double.tryParse(amount.toString()) ?? 0;
+      return double.tryParse(
+            amount.toString(),
+          ) ??
+          0;
     }
 
     final items = order['items'];
@@ -220,11 +266,15 @@ class _OrderScreenState extends State<OrderScreen> {
 
       for (final item in items) {
         if (item is Map) {
-          final price =
-              double.tryParse(item['price']?.toString() ?? '') ?? 0;
+          final price = double.tryParse(
+                item['price']?.toString() ?? '',
+              ) ??
+              0;
 
-          final quantity =
-              double.tryParse(item['quantity']?.toString() ?? '') ?? 1;
+          final quantity = double.tryParse(
+                item['quantity']?.toString() ?? '',
+              ) ??
+              1;
 
           result += price * quantity;
         }
@@ -242,11 +292,15 @@ class _OrderScreenState extends State<OrderScreen> {
 
           for (final item in decoded) {
             if (item is Map) {
-              final price =
-                  double.tryParse(item['price']?.toString() ?? '') ?? 0;
+              final price = double.tryParse(
+                    item['price']?.toString() ?? '',
+                  ) ??
+                  0;
 
-              final quantity =
-                  double.tryParse(item['quantity']?.toString() ?? '') ?? 1;
+              final quantity = double.tryParse(
+                    item['quantity']?.toString() ?? '',
+                  ) ??
+                  1;
 
               result += price * quantity;
             }
@@ -302,17 +356,28 @@ class _OrderScreenState extends State<OrderScreen> {
     final currentStatus =
         order['status']?.toString() ?? 'Pending';
 
+    final customerName =
+        order['customerName']?.toString() ??
+            order['userName']?.toString() ??
+            order['username']?.toString() ??
+            order['rollNumber']?.toString() ??
+            'Customer';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 CircleAvatar(
-                  child: Text(id.toString()),
+                  child: Text(
+                    id.toString(),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -324,7 +389,17 @@ class _OrderScreenState extends State<OrderScreen> {
                         'Order #$id',
                         style: const TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight:
+                              FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        customerName,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontWeight:
+                              FontWeight.w500,
                         ),
                       ),
                       if (date.isNotEmpty)
@@ -338,12 +413,30 @@ class _OrderScreenState extends State<OrderScreen> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () => deleteOrder(id),
+                  onPressed: () =>
+                      deleteOrder(id),
                   icon: const Icon(
                     Icons.delete_outline,
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius:
+                    BorderRadius.circular(10),
+              ),
+              child: Text(
+                widget.cafeteriaName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
             ),
             const Divider(height: 25),
             Text(
@@ -371,30 +464,45 @@ class _OrderScreenState extends State<OrderScreen> {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: statuses.contains(currentStatus)
-                        ? currentStatus
-                        : 'Pending',
-                    decoration: InputDecoration(
+                  child:
+                      DropdownButtonFormField<String>(
+                    value:
+                        statuses.contains(
+                                currentStatus)
+                            ? currentStatus
+                            : 'Pending',
+                    decoration:
+                        InputDecoration(
                       filled: true,
-                      fillColor: statusColor(
+                      fillColor:
+                          statusColor(
                         currentStatus,
                       ).withOpacity(0.08),
-                      border: OutlineInputBorder(
+                      border:
+                          OutlineInputBorder(
                         borderRadius:
-                            BorderRadius.circular(10),
+                            BorderRadius.circular(
+                          10,
+                        ),
                       ),
                     ),
-                    items: statuses.map((status) {
-                      return DropdownMenuItem<String>(
-                        value: status,
-                        child: Text(status),
-                      );
-                    }).toList(),
+                    items: statuses.map(
+                      (status) {
+                        return DropdownMenuItem<
+                            String>(
+                          value: status,
+                          child: Text(status),
+                        );
+                      },
+                    ).toList(),
                     onChanged: (value) {
                       if (value != null &&
-                          value != currentStatus) {
-                        updateStatus(id, value);
+                          value !=
+                              currentStatus) {
+                        updateStatus(
+                          id,
+                          value,
+                        );
                       }
                     },
                   ),
@@ -413,26 +521,64 @@ class _OrderScreenState extends State<OrderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Order Management',
-          style: TextStyle(
+        title: Text(
+          '${widget.cafeteriaName} Orders',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
             onPressed: loadOrders,
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(
+              Icons.refresh,
+            ),
           ),
         ],
       ),
       body: Column(
         children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            color: Colors.orange.shade50,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.restaurant,
+                  color: Colors.orange,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    widget.cafeteriaName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${orders.length} orders',
+                  style: const TextStyle(
+                    fontWeight:
+                        FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
           SizedBox(
             height: 60,
             child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
+              scrollDirection:
+                  Axis.horizontal,
+              padding:
+                  const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 10,
               ),
@@ -440,10 +586,12 @@ class _OrderScreenState extends State<OrderScreen> {
                 'All',
                 ...statuses,
               ].map((status) {
-                final selected = filter == status;
+                final selected =
+                    filter == status;
 
                 return Padding(
-                  padding: const EdgeInsets.only(
+                  padding:
+                      const EdgeInsets.only(
                     right: 8,
                   ),
                   child: ChoiceChip(
@@ -462,14 +610,18 @@ class _OrderScreenState extends State<OrderScreen> {
           Expanded(
             child: loading
                 ? const Center(
-                    child: CircularProgressIndicator(),
+                    child:
+                        CircularProgressIndicator(),
                   )
                 : displayedOrders.isEmpty
                     ? RefreshIndicator(
-                        onRefresh: loadOrders,
+                        onRefresh:
+                            loadOrders,
                         child: ListView(
                           children: const [
-                            SizedBox(height: 180),
+                            SizedBox(
+                              height: 180,
+                            ),
                             Center(
                               child: Text(
                                 'No orders found',
@@ -479,19 +631,26 @@ class _OrderScreenState extends State<OrderScreen> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: loadOrders,
-                        child: ListView.builder(
+                        onRefresh:
+                            loadOrders,
+                        child:
+                            ListView.builder(
                           padding:
-                              const EdgeInsets.all(16),
+                              const EdgeInsets
+                                  .all(16),
                           itemCount:
-                              displayedOrders.length,
+                              displayedOrders
+                                  .length,
                           itemBuilder:
                               (context, index) {
                             final order =
-                                displayedOrders[index];
+                                displayedOrders[
+                                    index];
 
                             if (order is Map) {
-                              return orderCard(order);
+                              return orderCard(
+                                order,
+                              );
                             }
 
                             return const SizedBox();
