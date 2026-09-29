@@ -4,10 +4,14 @@ import 'package:http/http.dart' as http;
 
 class EditFoodsScreen extends StatefulWidget {
   final Map<String, dynamic> food;
+  final String cafeteriaId;
+  final String cafeteriaName;
 
   const EditFoodsScreen({
     super.key,
     required this.food,
+    required this.cafeteriaId,
+    required this.cafeteriaName,
   });
 
   @override
@@ -61,6 +65,7 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
   Future<void> updateFood() async {
     final id = widget.food['id'];
     final name = nameController.text.trim();
+
     final price = double.tryParse(
       priceController.text.trim(),
     );
@@ -68,7 +73,9 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
     if (name.isEmpty || price == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Enter a valid food name and price'),
+          content: Text(
+            'Enter a valid food name and price',
+          ),
         ),
       );
       return;
@@ -87,13 +94,18 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
         body: jsonEncode({
           'name': name,
           'price': price,
-          'description': descriptionController.text.trim(),
-          'category': categoryController.text.trim().isEmpty
-              ? 'Other'
-              : categoryController.text.trim(),
+          'description':
+              descriptionController.text.trim(),
+          'category':
+              categoryController.text.trim().isEmpty
+                  ? 'Other'
+                  : categoryController.text.trim(),
           'image': imageController.text.trim(),
           'imagePath': imageController.text.trim(),
           'isAvailable': available,
+          'cafeteria': widget.cafeteriaName,
+          'restaurantId': widget.cafeteriaId,
+          'restaurantName': widget.cafeteriaName,
         }),
       );
 
@@ -101,8 +113,10 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Food updated successfully'),
+          SnackBar(
+            content: Text(
+              '${widget.cafeteriaName} food updated successfully',
+            ),
           ),
         );
 
@@ -117,7 +131,9 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Update failed: $e'),
+          content: Text(
+            'Update failed: $e',
+          ),
         ),
       );
     } finally {
@@ -152,9 +168,9 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Edit Food',
-          style: TextStyle(
+        title: Text(
+          'Edit Food - ${widget.cafeteriaName}',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -163,6 +179,32 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.restaurant,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Editing food for ${widget.cafeteriaName}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: nameController,
               decoration: decoration('Food Name'),
@@ -201,6 +243,11 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                subtitle: Text(
+                  available
+                      ? 'Food is available for ordering'
+                      : 'Food is currently unavailable',
+                ),
                 value: available,
                 onChanged: (value) {
                   setState(() {
@@ -219,13 +266,16 @@ class _EditFoodsScreenState extends State<EditFoodsScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(
+                        child:
+                            CircularProgressIndicator(
                           strokeWidth: 2,
                         ),
                       )
                     : const Icon(Icons.save),
                 label: Text(
-                  saving ? 'Saving...' : 'Save Changes',
+                  saving
+                      ? 'Saving...'
+                      : 'Save Changes',
                 ),
               ),
             ),
