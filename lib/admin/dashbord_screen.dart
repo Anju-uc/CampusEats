@@ -5,20 +5,25 @@ import 'order_screen.dart';
 import 'user_screen.dart';
 
 class DashbordScreen extends StatefulWidget {
-  const DashbordScreen({super.key});
+  final String cafeteriaId;
+  final String cafeteriaName;
+
+  const DashbordScreen({
+    super.key,
+    required this.cafeteriaId,
+    required this.cafeteriaName,
+  });
 
   @override
   State<DashbordScreen> createState() => _DashbordScreenState();
 }
 
 class _DashbordScreenState extends State<DashbordScreen> {
-  List<Map<String, dynamic>> cafeterias = [];
   List<Map<String, dynamic>> orders = [];
   Map<String, dynamic> analytics = {};
 
   bool loading = true;
   bool cafeteriaOpen = true;
-  int selectedCafeteria = 0;
 
   @override
   void initState() {
@@ -28,19 +33,18 @@ class _DashbordScreenState extends State<DashbordScreen> {
 
   Future<void> loadDashboard() async {
     try {
-      final cafeteriaData = await ApiService.getCafeterias();
       final orderData = await ApiService.getOrders();
       final analyticsData = await ApiService.getAnalytics();
 
       if (!mounted) return;
 
       setState(() {
-        cafeterias = cafeteriaData
-            .map((e) => Map<String, dynamic>.from(e))
-            .toList();
-
         orders = orderData
             .map((e) => Map<String, dynamic>.from(e))
+            .where(
+              (order) =>
+                  order['cafeteria']?.toString() == widget.cafeteriaName,
+            )
             .toList();
 
         analytics = Map<String, dynamic>.from(analyticsData);
@@ -61,15 +65,6 @@ class _DashbordScreenState extends State<DashbordScreen> {
     }
   }
 
-  String get cafeteriaName {
-    if (cafeterias.isEmpty) {
-      return 'PESU Cafeteria 1';
-    }
-
-    return cafeterias[selectedCafeteria]['name']?.toString() ??
-        'PESU Cafeteria ${selectedCafeteria + 1}';
-  }
-
   int get totalOrders {
     return orders.length;
   }
@@ -78,7 +73,10 @@ class _DashbordScreenState extends State<DashbordScreen> {
     return orders.where((order) {
       final status = order['status']?.toString().toLowerCase() ?? '';
 
-      return status == 'pending' || status == 'confirmed';
+      return status == 'pending' ||
+          status == 'confirmed' ||
+          status == 'preparing' ||
+          status == 'ready';
     }).length;
   }
 
@@ -145,17 +143,12 @@ class _DashbordScreenState extends State<DashbordScreen> {
   }
 
   void openMenu() {
-    if (cafeterias.isEmpty) return;
-
-    final cafeteria = cafeterias[selectedCafeteria];
-
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => MenuManagement(
-          restaurantId: cafeteria['id'].toString(),
-          restaurantName: cafeteria['name']?.toString() ??
-              'PESU Cafeteria ${selectedCafeteria + 1}',
+          restaurantId: widget.cafeteriaId,
+          restaurantName: widget.cafeteriaName,
         ),
       ),
     );
@@ -282,9 +275,9 @@ class _DashbordScreenState extends State<DashbordScreen> {
     return Scaffold(
       backgroundColor: const Color(0xfff5f6fa),
       appBar: AppBar(
-        title: const Text(
-          'CampusEATS Admin',
-          style: TextStyle(
+        title: Text(
+          widget.cafeteriaName,
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -303,44 +296,7 @@ class _DashbordScreenState extends State<DashbordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              sectionTitle('🏫 Select Cafeteria'),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    value: selectedCafeteria,
-                    isExpanded: true,
-                    items: List.generate(
-                      cafeterias.length,
-                      (index) {
-                        return DropdownMenuItem<int>(
-                          value: index,
-                          child: Text(
-                            cafeterias[index]['name']?.toString() ??
-                                'PESU Cafeteria ${index + 1}',
-                          ),
-                        );
-                      },
-                    ),
-                    onChanged: (value) {
-                      if (value == null) return;
-
-                      setState(() {
-                        selectedCafeteria = value;
-                      });
-                    },
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
+              sectionTitle('🏫 Cafeteria'),
 
               Container(
                 width: double.infinity,
@@ -362,7 +318,7 @@ class _DashbordScreenState extends State<DashbordScreen> {
                             CrossAxisAlignment.start,
                         children: [
                           Text(
-                            cafeteriaName,
+                            widget.cafeteriaName,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -583,37 +539,41 @@ class _DashbordScreenState extends State<DashbordScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Column(
+                child: Column(
                   children: [
                     ListTile(
-                      leading: Text(
-                        '🥇',
-                        style: TextStyle(
-                          fontSize: 24,
-                        ),
+                      leading: const Icon(
+                        Icons.local_dining,
                       ),
-                      title: Text('Masala Dosa'),
-                      trailing: Text('Popular'),
+                      title: Text(
+                        widget.cafeteriaName ==
+                                'Bengaluru Cafe'
+                            ? 'Masala Dosa'
+                            : widget.cafeteriaName ==
+                                    'Cafe PESU'
+                                ? 'Pizza'
+                                : 'Chicken Biryani',
+                      ),
+                      trailing: const Text(
+                        'Popular',
+                      ),
                     ),
                     ListTile(
-                      leading: Text(
-                        '🥈',
-                        style: TextStyle(
-                          fontSize: 24,
-                        ),
+                      leading: const Icon(
+                        Icons.star,
                       ),
-                      title: Text('Chicken Biryani'),
-                      trailing: Text('Popular'),
-                    ),
-                    ListTile(
-                      leading: Text(
-                        '🥉',
-                        style: TextStyle(
-                          fontSize: 24,
-                        ),
+                      title: Text(
+                        widget.cafeteriaName ==
+                                'Bengaluru Cafe'
+                            ? 'Coffee'
+                            : widget.cafeteriaName ==
+                                    'Cafe PESU'
+                                ? 'Snacks'
+                                : 'Chicken 65',
                       ),
-                      title: Text('Pizza'),
-                      trailing: Text('Popular'),
+                      trailing: const Text(
+                        'Popular',
+                      ),
                     ),
                   ],
                 ),
@@ -649,6 +609,10 @@ class _DashbordScreenState extends State<DashbordScreen> {
                 ),
                 child: Column(
                   children: [
+                    analyticsRow(
+                      'Cafeteria',
+                      widget.cafeteriaName,
+                    ),
                     analyticsRow(
                       'Total Orders',
                       totalOrders.toString(),
@@ -720,11 +684,16 @@ class _DashbordScreenState extends State<DashbordScreen> {
         mainAxisAlignment:
             MainAxisAlignment.spaceBetween,
         children: [
-          Text(title),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
+          Expanded(
+            child: Text(title),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
