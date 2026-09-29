@@ -3,7 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class AddFoodScreen extends StatefulWidget {
-  const AddFoodScreen({super.key});
+  final String cafeteriaId;
+  final String cafeteriaName;
+
+  const AddFoodScreen({
+    super.key,
+    required this.cafeteriaId,
+    required this.cafeteriaName,
+  });
 
   @override
   State<AddFoodScreen> createState() => _AddFoodScreenState();
@@ -30,7 +37,9 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
     if (name.isEmpty || price == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Enter a valid food name and price'),
+          content: Text(
+            'Enter a valid food name and price',
+          ),
         ),
       );
       return;
@@ -55,11 +64,12 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
               categoryController.text.trim().isEmpty
                   ? 'Other'
                   : categoryController.text.trim(),
-          'image':
-              imageController.text.trim(),
-          'imagePath':
-              imageController.text.trim(),
+          'image': imageController.text.trim(),
+          'imagePath': imageController.text.trim(),
           'isAvailable': available,
+          'cafeteria': widget.cafeteriaName,
+          'restaurantId': widget.cafeteriaId,
+          'restaurantName': widget.cafeteriaName,
         }),
       );
 
@@ -68,8 +78,10 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
         if (!mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Food added successfully'),
+          SnackBar(
+            content: Text(
+              'Food added to ${widget.cafeteriaName}',
+            ),
           ),
         );
 
@@ -84,7 +96,9 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to add food: $e'),
+          content: Text(
+            'Failed to add food: $e',
+          ),
         ),
       );
     } finally {
@@ -119,9 +133,9 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add Food',
-          style: TextStyle(
+        title: Text(
+          'Add Food - ${widget.cafeteriaName}',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -130,6 +144,32 @@ class _AddFoodScreenState extends State<AddFoodScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.restaurant,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Adding food to ${widget.cafeteriaName}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: nameController,
               decoration: decoration('Food Name'),
