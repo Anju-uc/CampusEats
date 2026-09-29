@@ -42,6 +42,8 @@ class _MenuManagementState extends State<MenuManagement> {
     'Noodles': 'assets/images/food/noodles.jpg',
     'Coffee': 'assets/images/food/coffee.jpg',
     'Cold Coffee': 'assets/images/food/cold_coffee.jpg',
+    'Masala Puri': 'assets/images/food/masala_puri.jpg',
+    'Pani Puri': 'assets/images/food/pani_puri.jpg',
   };
 
   @override
@@ -82,13 +84,31 @@ class _MenuManagementState extends State<MenuManagement> {
             )
             .toList();
 
+        final cafeteriaFoods = loadedFoods.where((food) {
+          final cafeteria =
+              food['cafeteria']?.toString() ??
+              food['restaurant']?.toString() ??
+              food['restaurantName']?.toString() ??
+              food['cafeteriaName']?.toString();
+
+          if (cafeteria == null || cafeteria.isEmpty) {
+            return _foodBelongsToCafeteria(
+              food['name']?.toString() ?? '',
+            );
+          }
+
+          return cafeteria.toLowerCase() ==
+              widget.restaurantName.toLowerCase();
+        }).toList();
+
         if (!mounted) {
           return;
         }
 
         setState(() {
-          foods = loadedFoods;
-          filteredFoods = List<Map<String, dynamic>>.from(loadedFoods);
+          foods = cafeteriaFoods;
+          filteredFoods =
+              List<Map<String, dynamic>>.from(cafeteriaFoods);
           loading = false;
         });
 
@@ -119,6 +139,46 @@ class _MenuManagementState extends State<MenuManagement> {
     }
   }
 
+  bool _foodBelongsToCafeteria(String name) {
+    final food = name.trim().toLowerCase();
+
+    if (widget.restaurantName == 'Bengaluru Cafe') {
+      return [
+        'idli',
+        'vada',
+        'masala dosa',
+        'set dosa',
+        'puri',
+        'bisibele bath',
+        'lemon rice',
+        'chole bhature',
+        'coffee',
+        'cold coffee',
+        'pani puri',
+        'masala puri',
+      ].contains(food);
+    }
+
+    if (widget.restaurantName == 'Cafe PESU') {
+      return [
+        'pizza',
+        'burger',
+        'noodles',
+        'pani puri',
+        'masala puri',
+      ].contains(food);
+    }
+
+    if (widget.restaurantName == 'Non-Veg Cafeteria') {
+      return [
+        'chicken biryani',
+        'chicken 65',
+      ].contains(food);
+    }
+
+    return false;
+  }
+
   void applyFilters() {
     List<Map<String, dynamic>> result =
         List<Map<String, dynamic>>.from(foods);
@@ -133,11 +193,14 @@ class _MenuManagementState extends State<MenuManagement> {
       final search = searchText.trim().toLowerCase();
 
       result = result.where((food) {
-        final name = food['name']?.toString().toLowerCase() ?? '';
+        final name =
+            food['name']?.toString().toLowerCase() ?? '';
+
         final category =
             food['category']?.toString().toLowerCase() ?? '';
 
-        return name.contains(search) || category.contains(search);
+        return name.contains(search) ||
+            category.contains(search);
       }).toList();
     }
 
@@ -231,7 +294,8 @@ class _MenuManagementState extends State<MenuManagement> {
     Map<String, dynamic> food,
   ) async {
     final id = food['id'];
-    final name = food['name']?.toString() ?? 'this food';
+    final name =
+        food['name']?.toString() ?? 'this food';
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -295,7 +359,9 @@ class _MenuManagementState extends State<MenuManagement> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Add Food'),
+              title: Text(
+                'Add Food - ${widget.restaurantName}',
+              ),
               content: SingleChildScrollView(
                 child: SizedBox(
                   width: 450,
@@ -312,7 +378,8 @@ class _MenuManagementState extends State<MenuManagement> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: priceController,
-                        keyboardType: TextInputType.number,
+                        keyboardType:
+                            TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'Price',
                           prefixText: '₹ ',
@@ -342,6 +409,18 @@ class _MenuManagementState extends State<MenuManagement> {
                           DropdownMenuItem(
                             value: 'Beverages',
                             child: Text('Beverages'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Chicken',
+                            child: Text('Chicken'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Biryani',
+                            child: Text('Biryani'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Egg',
+                            child: Text('Egg'),
                           ),
                         ],
                         onChanged: (value) {
@@ -392,9 +471,12 @@ class _MenuManagementState extends State<MenuManagement> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    final name = nameController.text.trim();
-                    final price =
-                        double.tryParse(priceController.text.trim());
+                    final name =
+                        nameController.text.trim();
+
+                    final price = double.tryParse(
+                      priceController.text.trim(),
+                    );
 
                     if (name.isEmpty || price == null) {
                       showMessage(
@@ -407,23 +489,33 @@ class _MenuManagementState extends State<MenuManagement> {
                       final response = await http.post(
                         Uri.parse('$baseUrl/menu'),
                         headers: {
-                          'Content-Type': 'application/json',
+                          'Content-Type':
+                              'application/json',
                         },
                         body: jsonEncode({
                           'name': name,
                           'price': price,
                           'description':
-                              descriptionController.text.trim(),
+                              descriptionController.text
+                                  .trim(),
                           'category': category,
-                          'image': imageController.text.trim(),
+                          'image':
+                              imageController.text.trim(),
                           'isAvailable': available,
+                          'cafeteria':
+                              widget.restaurantName,
+                          'restaurantId':
+                              widget.restaurantId,
                         }),
                       );
 
                       if (response.statusCode >= 200 &&
                           response.statusCode < 300) {
                         if (dialogContext.mounted) {
-                          Navigator.pop(dialogContext, true);
+                          Navigator.pop(
+                            dialogContext,
+                            true,
+                          );
                         }
                       } else {
                         showMessage('Could not add food');
@@ -460,7 +552,8 @@ class _MenuManagementState extends State<MenuManagement> {
       text: food['price']?.toString() ?? '',
     );
 
-    final descriptionController = TextEditingController(
+    final descriptionController =
+        TextEditingController(
       text: food['description']?.toString() ?? '',
     );
 
@@ -469,11 +562,11 @@ class _MenuManagementState extends State<MenuManagement> {
     );
 
     String category =
-        food['category']?.toString() ?? 'South Indian';
+        food['category']?.toString() ??
+            'South Indian';
 
-    bool available = isAvailable(
-      food['isAvailable'],
-    );
+    bool available =
+        isAvailable(food['isAvailable']);
 
     final result = await showDialog<bool>(
       context: context,
@@ -481,7 +574,9 @@ class _MenuManagementState extends State<MenuManagement> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Edit Food'),
+              title: Text(
+                'Edit Food - ${widget.restaurantName}',
+              ),
               content: SingleChildScrollView(
                 child: SizedBox(
                   width: 450,
@@ -498,7 +593,8 @@ class _MenuManagementState extends State<MenuManagement> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: priceController,
-                        keyboardType: TextInputType.number,
+                        keyboardType:
+                            TextInputType.number,
                         decoration: const InputDecoration(
                           labelText: 'Price',
                           prefixText: '₹ ',
@@ -528,6 +624,18 @@ class _MenuManagementState extends State<MenuManagement> {
                           DropdownMenuItem(
                             value: 'Beverages',
                             child: Text('Beverages'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Chicken',
+                            child: Text('Chicken'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Biryani',
+                            child: Text('Biryani'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Egg',
+                            child: Text('Egg'),
                           ),
                         ],
                         onChanged: (value) {
@@ -572,15 +680,21 @@ class _MenuManagementState extends State<MenuManagement> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(dialogContext, false);
+                    Navigator.pop(
+                      dialogContext,
+                      false,
+                    );
                   },
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    final name = nameController.text.trim();
-                    final price =
-                        double.tryParse(priceController.text.trim());
+                    final name =
+                        nameController.text.trim();
+
+                    final price = double.tryParse(
+                      priceController.text.trim(),
+                    );
 
                     if (name.isEmpty || price == null) {
                       showMessage(
@@ -595,23 +709,33 @@ class _MenuManagementState extends State<MenuManagement> {
                       final response = await http.put(
                         Uri.parse('$baseUrl/menu/$id'),
                         headers: {
-                          'Content-Type': 'application/json',
+                          'Content-Type':
+                              'application/json',
                         },
                         body: jsonEncode({
                           'name': name,
                           'price': price,
                           'description':
-                              descriptionController.text.trim(),
+                              descriptionController.text
+                                  .trim(),
                           'category': category,
-                          'image': imageController.text.trim(),
+                          'image':
+                              imageController.text.trim(),
                           'isAvailable': available,
+                          'cafeteria':
+                              widget.restaurantName,
+                          'restaurantId':
+                              widget.restaurantId,
                         }),
                       );
 
                       if (response.statusCode >= 200 &&
                           response.statusCode < 300) {
                         if (dialogContext.mounted) {
-                          Navigator.pop(dialogContext, true);
+                          Navigator.pop(
+                            dialogContext,
+                            true,
+                          );
                         }
                       } else {
                         showMessage(
@@ -655,9 +779,11 @@ class _MenuManagementState extends State<MenuManagement> {
   Widget buildFoodImage(
     Map<String, dynamic> food,
   ) {
-    final name = food['name']?.toString() ?? '';
+    final name =
+        food['name']?.toString() ?? '';
 
-    final assetPath = getAssetForFood(name);
+    final assetPath =
+        getAssetForFood(name);
 
     if (assetPath != null) {
       return Image.asset(
@@ -726,7 +852,8 @@ class _MenuManagementState extends State<MenuManagement> {
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius:
+                  BorderRadius.circular(12),
               child: buildFoodImage(food),
             ),
             const SizedBox(width: 16),
@@ -759,7 +886,8 @@ class _MenuManagementState extends State<MenuManagement> {
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(
+                    padding:
+                        const EdgeInsets.symmetric(
                       horizontal: 9,
                       vertical: 5,
                     ),
@@ -878,6 +1006,35 @@ class _MenuManagementState extends State<MenuManagement> {
                   const EdgeInsets.all(20),
               child: Column(
                 children: [
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius:
+                          BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.restaurant,
+                          color: Colors.orange,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Managing ${widget.restaurantName}',
+                            style: const TextStyle(
+                              fontWeight:
+                                  FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 15),
                   Row(
                     children: [
                       Expanded(
@@ -898,9 +1055,7 @@ class _MenuManagementState extends State<MenuManagement> {
                                 OutlineInputBorder(
                               borderRadius:
                                   BorderRadius
-                                      .circular(
-                                12,
-                              ),
+                                      .circular(12),
                             ),
                           ),
                         ),
@@ -950,11 +1105,13 @@ class _MenuManagementState extends State<MenuManagement> {
                   Expanded(
                     child: filteredFoods
                             .isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
-                              'No food items found',
+                              'No food items found for ${widget.restaurantName}',
+                              textAlign:
+                                  TextAlign.center,
                               style:
-                                  TextStyle(
+                                  const TextStyle(
                                 fontSize: 18,
                               ),
                             ),
