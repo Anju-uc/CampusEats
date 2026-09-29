@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 
 class AdminScreen extends StatefulWidget {
-  const AdminScreen({super.key});
+  final String cafeteriaId;
+  final String cafeteriaName;
+
+  const AdminScreen({
+    super.key,
+    required this.cafeteriaId,
+    required this.cafeteriaName,
+  });
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
 }
 
 class _AdminScreenState extends State<AdminScreen> {
-  final List<Map<String, dynamic>> orders = [
+  final List<Map<String, dynamic>> allOrders = [
     {
       'id': 1001,
       'rollNumber': 'PESU001',
@@ -35,15 +42,23 @@ class _AdminScreenState extends State<AdminScreen> {
     },
   ];
 
+  List<Map<String, dynamic>> get cafeteriaOrders {
+    return allOrders
+        .where((order) => order['cafeteria'] == widget.cafeteriaName)
+        .toList();
+  }
+
   void updateStatus(int index, String status) {
+    final order = cafeteriaOrders[index];
+
     setState(() {
-      orders[index]['status'] = status;
+      order['status'] = status;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Order #${orders[index]['id']} marked as $status',
+          'Order #${order['id']} marked as $status',
         ),
       ),
     );
@@ -64,15 +79,43 @@ class _AdminScreenState extends State<AdminScreen> {
     }
   }
 
+  int get totalOrders => cafeteriaOrders.length;
+
+  int get pendingOrders {
+    return cafeteriaOrders
+        .where(
+          (order) =>
+              order['status'] != 'Completed' &&
+              order['status'] != 'Cancelled',
+        )
+        .length;
+  }
+
+  int get completedOrders {
+    return cafeteriaOrders
+        .where((order) => order['status'] == 'Completed')
+        .length;
+  }
+
+  double get revenue {
+    return cafeteriaOrders
+        .where((order) => order['status'] != 'Cancelled')
+        .fold(
+          0.0,
+          (sum, order) => sum + (order['total'] as double),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final orders = cafeteriaOrders;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
-
       appBar: AppBar(
-        title: const Text(
-          'CampusEATS Admin',
-          style: TextStyle(
+        title: Text(
+          widget.cafeteriaName,
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -88,27 +131,25 @@ class _AdminScreenState extends State<AdminScreen> {
           ),
         ],
       ),
-
       body: Column(
         children: [
-          // Dashboard heading
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            child: const Column(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Admin Dashboard',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
                 Text(
-                  'Manage cafeteria orders',
-                  style: TextStyle(
+                  'Manage ${widget.cafeteriaName}',
+                  style: const TextStyle(
                     color: Colors.grey,
                     fontSize: 15,
                   ),
@@ -117,7 +158,78 @@ class _AdminScreenState extends State<AdminScreen> {
             ),
           ),
 
-          // Order list
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _statCard(
+                    'Orders',
+                    totalOrders.toString(),
+                    Icons.receipt_long,
+                    Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _statCard(
+                    'Pending',
+                    pendingOrders.toString(),
+                    Icons.pending_actions,
+                    Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _statCard(
+                    'Completed',
+                    completedOrders.toString(),
+                    Icons.check_circle,
+                    Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Colors.green,
+                  child: Icon(
+                    Icons.currency_rupee,
+                    color: Colors.white,
+                  ),
+                ),
+                title: const Text(
+                  'Revenue',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  'Total completed/active orders',
+                ),
+                trailing: Text(
+                  '₹${revenue.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
           Expanded(
             child: orders.isEmpty
                 ? const Center(
@@ -152,8 +264,6 @@ class _AdminScreenState extends State<AdminScreen> {
                             crossAxisAlignment:
                                 CrossAxisAlignment.start,
                             children: [
-
-                              // Order number + status
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -165,7 +275,6 @@ class _AdminScreenState extends State<AdminScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-
                                   Container(
                                     padding:
                                         const EdgeInsets.symmetric(
@@ -183,17 +292,13 @@ class _AdminScreenState extends State<AdminScreen> {
                                       style: TextStyle(
                                         color:
                                             getStatusColor(status),
-                                        fontWeight:
-                                            FontWeight.bold,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-
                               const SizedBox(height: 15),
-
-                              // Roll number
                               Row(
                                 children: [
                                   const Icon(
@@ -210,10 +315,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   ),
                                 ],
                               ),
-
                               const SizedBox(height: 10),
-
-                              // Cafeteria
                               Row(
                                 children: [
                                   const Icon(
@@ -223,19 +325,15 @@ class _AdminScreenState extends State<AdminScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    order['cafeteria'],
+                                    widget.cafeteriaName,
                                     style: const TextStyle(
                                       fontSize: 15,
-                                      fontWeight:
-                                          FontWeight.w600,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
                               ),
-
                               const SizedBox(height: 10),
-
-                              // Items
                               Text(
                                 order['items'],
                                 style: const TextStyle(
@@ -243,10 +341,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   color: Colors.grey,
                                 ),
                               ),
-
                               const SizedBox(height: 15),
-
-                              // Total
                               Text(
                                 '₹${order['total'].toStringAsFixed(2)}',
                                 style: const TextStyle(
@@ -254,10 +349,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-
                               const SizedBox(height: 15),
-
-                              // Preparing button
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
@@ -282,10 +374,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   ),
                                 ),
                               ),
-
                               const SizedBox(height: 8),
-
-                              // Ready + Completed
                               Row(
                                 children: [
                                   Expanded(
@@ -301,9 +390,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       ),
                                     ),
                                   ),
-
                                   const SizedBox(width: 8),
-
                                   Expanded(
                                     child: OutlinedButton(
                                       onPressed: () {
@@ -319,10 +406,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                   ),
                                 ],
                               ),
-
                               const SizedBox(height: 8),
-
-                              // Cancel
                               SizedBox(
                                 width: double.infinity,
                                 child: TextButton(
@@ -348,6 +432,47 @@ class _AdminScreenState extends State<AdminScreen> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _statCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 28,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
