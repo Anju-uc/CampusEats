@@ -14,7 +14,14 @@ app.use(helmet());
 
 app.use(cors({ origin: corsOrigin }));
 
-app.use(express.json({ limit: "1mb" }));
+app.use(
+  express.json({
+    limit: "1mb",
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -22,6 +29,9 @@ app.get("/api/health", (req, res) => {
     service: "CampusEATS Backend",
   });
 });
+
+const { renderKioskPage } = require("./modules/kiosk/kiosk.controller");
+app.get("/kiosk", renderKioskPage);
 
 app.use("/api", routes);
 

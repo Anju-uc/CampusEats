@@ -29,6 +29,10 @@ function validateObjectId(id) {
   }
 }
 
+function escapeRegex(string) {
+  return String(string).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 async function getCart(userId) {
   const cart = await getCartCollection().findOne({ userId });
 
@@ -43,17 +47,52 @@ async function getCart(userId) {
   const items = [];
 
   for (const cartItem of cart.items || []) {
-    const menuItem = await getMenuCollection().findOne({
-      _id: cartItem.menuItemId,
-    });
+    let menuItem = null;
+    if (cartItem.menuItemId && ObjectId.isValid(String(cartItem.menuItemId))) {
+      menuItem = await getMenuCollection().findOne({
+        _id: new ObjectId(String(cartItem.menuItemId)),
+      });
+    }
+
+    if (!menuItem && cartItem.menuItemId) {
+      menuItem = await getMenuCollection().findOne({
+        $or: [
+          { id: String(cartItem.menuItemId) },
+          { menuItemId: String(cartItem.menuItemId) },
+        ],
+      });
+    }
+
+    if (!menuItem && cartItem.name) {
+      const escaped = escapeRegex(String(cartItem.name).trim());
+      menuItem = await getMenuCollection().findOne({
+        name: { $regex: new RegExp(`^${escaped}$`, "i") },
+      });
+    }
 
     if (menuItem) {
+      const price = Number(menuItem.price);
+      const quantity = Number(cartItem.quantity) || 1;
       items.push({
         menuItemId: menuItem._id,
         name: menuItem.name,
-        price: menuItem.price,
-        quantity: cartItem.quantity,
-        subtotal: menuItem.price * cartItem.quantity,
+        price,
+        quantity,
+        subtotal: price * quantity,
+        cafeteria: menuItem.cafeteria || cartItem.cafeteria || "Bengaluru Cafe",
+        imageUrl: menuItem.imageUrl || cartItem.imageUrl || "",
+      });
+    } else if (cartItem.name && (cartItem.price !== undefined || cartItem.price === 0)) {
+      const price = Number(cartItem.price) || 0;
+      const quantity = Number(cartItem.quantity) || 1;
+      items.push({
+        menuItemId: cartItem.menuItemId || `item_${cartItem.name}`,
+        name: cartItem.name,
+        price,
+        quantity,
+        subtotal: price * quantity,
+        cafeteria: cartItem.cafeteria || "Bengaluru Cafe",
+        imageUrl: cartItem.imageUrl || "",
       });
     }
   }
@@ -219,10 +258,87 @@ async function clearCart(userId) {
   return getCart(userId);
 }
 
+async function syncCart(userId, items = []) {
+  const validItems = [];
+  if (Array.isArray(items)) {
+    for (const item of items) {
+      if (!item) continue;
+      const rawId = item.menuItemId || item.backendMenuItemId || item.id || item._id;
+      let menuItem = null;
+
+      if (rawId && ObjectId.isValid(String(rawId))) {
+        menuItem = await getMenuCollection().findOne({
+          _id: new ObjectId(String(rawId)),
+        });
+      }
+
+      if (!menuItem && rawId) {
+        menuItem = await getMenuCollection().findOne({
+          $or: [
+            { id: String(rawId) },
+            { menuItemId: String(rawId) },
+            { itemId: String(rawId) },
+          ],
+        });
+      }
+
+      if (!menuItem && item.name) {
+        const escaped = escapeRegex(String(item.name).trim());
+        menuItem = await getMenuCollection().findOne({
+          name: { $regex: new RegExp(`^${escaped}$`, "i") },
+        });
+      }
+
+      const quantity = Math.max(
+        1,
+        Math.min(Number(item.quantity) || 1, MAX_CART_QUANTITY)
+      );
+
+      if (menuItem) {
+        if (menuItem.available !== false) {
+          validItems.push({
+            menuItemId: menuItem._id,
+            name: menuItem.name,
+            price: Number(menuItem.price),
+            quantity,
+            cafeteria: menuItem.cafeteria || item.cafeteria || "Bengaluru Cafe",
+          });
+        }
+      } else if (item.name && (Number(item.price) > 0 || item.price === 0)) {
+        validItems.push({
+          menuItemId: rawId ? String(rawId) : `item_${String(item.name).trim().toLowerCase().replace(/\s+/g, "_")}`,
+          name: String(item.name).trim(),
+          price: Number(item.price) || 0,
+          quantity,
+          cafeteria: item.cafeteria || "Bengaluru Cafe",
+        });
+      }
+    }
+  }
+
+  const now = new Date();
+  await getCartCollection().updateOne(
+    { userId },
+    {
+      $set: {
+        items: validItems,
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        createdAt: now,
+      },
+    },
+    { upsert: true }
+  );
+
+  return getCart(userId);
+}
+
 module.exports = {
   getCart,
   addToCart,
   updateCartItem,
   removeFromCart,
   clearCart,
+  syncCart,
 };

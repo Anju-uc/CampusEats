@@ -1,16 +1,23 @@
 const { ObjectId } = require("mongodb");
 
 function validateCreateReview(req, res, next) {
-  const { menuItemId, rating, review } = req.body;
+  const { orderId, menuItemId, rating, review } = req.body || {};
 
-  if (!menuItemId || typeof menuItemId !== "string") {
+  if (!orderId && !menuItemId) {
     return res.status(400).json({
       status: "error",
-      message: "menuItemId is required",
+      message: "orderId is required",
     });
   }
 
-  if (!ObjectId.isValid(menuItemId)) {
+  if (orderId && typeof orderId !== "string" && !ObjectId.isValid(String(orderId))) {
+    return res.status(400).json({
+      status: "error",
+      message: "orderId must be a valid ID",
+    });
+  }
+
+  if (menuItemId && !ObjectId.isValid(String(menuItemId))) {
     return res.status(400).json({
       status: "error",
       message: "menuItemId must be a valid MongoDB ObjectId",
@@ -33,10 +40,10 @@ function validateCreateReview(req, res, next) {
     });
   }
 
-  if (review !== undefined && review !== null && review.trim().length > 500) {
+  if (review !== undefined && review !== null && review.trim().length > 1000) {
     return res.status(400).json({
       status: "error",
-      message: "review must be 500 characters or fewer",
+      message: "review must be 1000 characters or fewer",
     });
   }
 
@@ -44,7 +51,7 @@ function validateCreateReview(req, res, next) {
 }
 
 function validateUpdateReview(req, res, next) {
-  const { rating, review } = req.body;
+  const { rating, review } = req.body || {};
 
   if (rating === undefined && review === undefined) {
     return res.status(400).json({
@@ -72,10 +79,10 @@ function validateUpdateReview(req, res, next) {
       });
     }
 
-    if (review.trim().length > 500) {
+    if (review.trim().length > 1000) {
       return res.status(400).json({
         status: "error",
-        message: "review must be 500 characters or fewer",
+        message: "review must be 1000 characters or fewer",
       });
     }
   }

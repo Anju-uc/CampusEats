@@ -24,6 +24,19 @@ const config = {
       : undefined,
     databaseURL: process.env.FIREBASE_DATABASE_URL,
   },
+
+  razorpay: {
+    keyId: process.env.RAZORPAY_KEY_ID,
+    keySecret: process.env.RAZORPAY_KEY_SECRET,
+    webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET,
+  },
+
+  cashfree: {
+    clientId: process.env.CASHFREE_CLIENT_ID || process.env.CASHFREE_APP_ID,
+    clientSecret: process.env.CASHFREE_CLIENT_SECRET || process.env.CASHFREE_SECRET_KEY,
+    environment: process.env.CASHFREE_ENV || "sandbox",
+    apiVersion: process.env.CASHFREE_API_VERSION || "2025-01-01",
+  },
 };
 
 module.exports = config;

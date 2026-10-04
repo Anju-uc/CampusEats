@@ -32,6 +32,20 @@ async function login(req, res, next) {
   }
 }
 
+async function staffLogin(req, res, next) {
+  try {
+    const result = await authService.loginStaff(req.body);
+
+    res.status(200).json({
+      status: "success",
+      message: "Staff login successful",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function updateStudentStatus(req, res, next) {
   try {
     const user = await authService.updateStudentStatus(
@@ -56,8 +70,43 @@ async function updateStudentStatus(req, res, next) {
   }
 }
 
+async function campusCheckin(req, res, next) {
+  try {
+    const user = req.user;
+    if (!user || user.role !== "Student" || user.status !== "ACTIVE") {
+      return res.status(403).json({
+        status: "error",
+        message: "An active student account is required",
+      });
+    }
+
+    const { checkinChallenge } = req.body || {};
+    if (!checkinChallenge) {
+      return res.status(400).json({
+        status: "error",
+        message: "Campus check-in challenge is required",
+      });
+    }
+
+    const result = await authService.verifyCampusCheckinAndIssueProof({
+      uid: user.uid,
+      checkinChallenge,
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Campus check-in verified successfully",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
+  staffLogin,
   updateStudentStatus,
+  campusCheckin,
 };

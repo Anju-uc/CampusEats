@@ -3,16 +3,11 @@ const { getOrderEta } = require("../intelligence/eta/eta.service");
 
 async function createOrder(req, res, next) {
   try {
-    const order = await orderService.createOrder(
-      req.user.uid,
-      req.body.notes,
-      req.body.items
-    );
-
-    res.status(201).json({
-      status: "success",
-      message: "Order created successfully",
-      data: order,
+    return res.status(400).json({
+      status: "error",
+      code: "PAYMENT_REQUIRED",
+      message:
+        "Direct unpaid order creation is disabled. Please create a payment intent at /api/payments/create-order and complete verification at /api/payments/verify.",
     });
   } catch (error) {
     next(error);
@@ -34,7 +29,11 @@ async function getMyOrders(req, res, next) {
 
 async function getAllOrders(req, res, next) {
   try {
-    const orders = await orderService.getAllOrders();
+    const isStaff = req.user?.role === "Admin" || req.user?.role === "Kitchen";
+    const cafeteria = isStaff
+      ? req.user?.cafeteria
+      : (req.query?.cafeteria || req.user?.cafeteria);
+    const orders = await orderService.getAllOrders(cafeteria);
 
     res.status(200).json({
       status: "success",
@@ -111,6 +110,34 @@ async function cancelOrder(req, res, next) {
   }
 }
 
+async function markNoShow(req, res, next) {
+  try {
+    const order = await orderService.markNoShow(req.params.id);
+
+    res.status(200).json({
+      status: "success",
+      message: "Order marked as NO_SHOW",
+      data: order,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function releaseUncollectedOrder(req, res, next) {
+  try {
+    const order = await orderService.releaseUncollectedOrder(req.params.id);
+
+    res.status(200).json({
+      status: "success",
+      message: "Uncollected order released successfully",
+      data: order,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   createOrder,
   getMyOrders,
@@ -118,5 +145,7 @@ module.exports = {
   getOrderById,
   getEta,
   updateOrderStatus,
+  markNoShow,
+  releaseUncollectedOrder,
   cancelOrder,
 };

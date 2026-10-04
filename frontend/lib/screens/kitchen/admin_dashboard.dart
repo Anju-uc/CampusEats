@@ -10,8 +10,29 @@ import '../../services/api_service.dart';
 import 'package:provider/provider.dart';
 import '../../providers/order_provider.dart';
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
+
+  @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAdminOrders();
+    });
+  }
+
+  Future<void> _loadAdminOrders() async {
+    final hasAdmin = await ApiService.restoreAdminSession();
+    if (!mounted) return;
+    if (hasAdmin || ApiService.adminToken != null) {
+      await context.read<OrderProvider>().loadOrders();
+    }
+  }
 
   // ==========================
   // DASHBOARD CARD
@@ -152,19 +173,19 @@ class AdminDashboard extends StatelessWidget {
                 Text(
                   "Welcome, $title",
 
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 21,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
 
                 Text(
                   cafeteria,
 
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
             ),
@@ -227,9 +248,11 @@ class AdminDashboard extends StatelessWidget {
 
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
+            icon: const Icon(Icons.refresh),
 
-            onPressed: () {},
+            onPressed: () {
+              context.read<OrderProvider>().loadOrders();
+            },
           ),
         ],
       ),
@@ -238,310 +261,325 @@ class AdminDashboard extends StatelessWidget {
       // BODY
       // ==========================
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(18),
+        child: RefreshIndicator(
+          color: Colors.orange,
+          onRefresh: () async {
+            await context.read<OrderProvider>().loadOrders();
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(18),
 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
 
-            children: [
-              welcomeCard(),
+              children: [
+                welcomeCard(),
 
-              const SizedBox(height: 25),
+                const SizedBox(height: 25),
 
-              Consumer<OrderProvider>(
-                builder: (context, provider, child) {
-                  final cafeteria = ApiService.adminCafeteria;
-                  final orders = cafeteria == null
-                      ? provider.orders
-                      : provider.orders
-                            .where(
-                              (order) =>
-                                  provider.getCafeteria(order) == cafeteria,
-                            )
-                            .toList();
-                  int count(String status) => orders
-                      .where((order) => provider.getStatus(order) == status)
-                      .length;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${cafeteria ?? 'Cafeteria'} Orders',
-                        style: const TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.bold,
+                Consumer<OrderProvider>(
+                  builder: (context, provider, child) {
+                    final cafeteria = ApiService.adminCafeteria;
+                    final orders = cafeteria == null
+                        ? provider.orders
+                        : provider.orders
+                              .where(
+                                (order) =>
+                                    provider.getCafeteria(order) == cafeteria,
+                              )
+                              .toList();
+                    int count(String status) => orders
+                        .where((order) {
+                          final s = provider.getStatus(order);
+                          if (status == 'Confirmed') {
+                            return s == 'Confirmed' || s == 'Pending';
+                          }
+                          return s == status;
+                        })
+                        .length;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${cafeteria ?? 'Cafeteria'} Orders',
+                          style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _summary(
+                              'New',
+                              count('Confirmed'),
+                              Colors.deepOrange,
+                            ),
+                            _summary(
+                              'Preparing',
+                              count('Preparing'),
+                              Colors.orange,
+                            ),
+                            _summary('Ready', count('Ready'), Colors.blue),
+                            _summary(
+                              'Completed',
+                              count('Completed'),
+                              Colors.green,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 25),
+                      ],
+                    );
+                  },
+                ),
+
+                // ==========================
+                // OVERVIEW
+                // ==========================
+                sectionTitle("Overview", "Manage your CampusEats system"),
+
+                const SizedBox(height: 15),
+
+                GridView.count(
+                  crossAxisCount: 2,
+
+                  crossAxisSpacing: 14,
+
+                  mainAxisSpacing: 14,
+
+                  childAspectRatio: 0.95,
+
+                  shrinkWrap: true,
+
+                  physics: const NeverScrollableScrollPhysics(),
+
+                  children: [
+                    // ADD FOOD
+                    dashboardCard(
+                      context,
+                      Icons.fastfood,
+                      "Add Food",
+                      "Add new items",
+                      Colors.orange,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AddFoodScreen(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // MANAGE MENU
+                    dashboardCard(
+                      context,
+                      Icons.restaurant_menu,
+                      "Manage Menu",
+                      "Edit campus menu",
+                      Colors.green,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ManageMenuScreen(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // ORDERS
+                    dashboardCard(
+                      context,
+                      Icons.receipt_long,
+                      "Orders",
+                      "View all orders",
+                      Colors.blue,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrdersScreen(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // KITCHEN
+                    dashboardCard(
+                      context,
+                      Icons.restaurant,
+                      "Kitchen",
+                      "Kitchen control",
+                      Colors.deepOrange,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const KitchenDashboard(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // REPORTS
+                    dashboardCard(
+                      context,
+                      Icons.bar_chart,
+                      "Reports",
+                      "View sales reports",
+                      Colors.purple,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReportsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // ANALYTICS
+                    dashboardCard(
+                      context,
+                      Icons.analytics,
+                      "Analytics",
+                      "Track performance",
+                      Colors.indigo,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AnalyticsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 28),
+
+                // ==========================
+                // QUICK MANAGEMENT
+                // ==========================
+                sectionTitle(
+                  "Quick Management",
+                  "Frequently used admin actions",
+                ),
+
+                const SizedBox(height: 14),
+
+                // ADD FOOD
+                _quickAction(
+                  icon: Icons.add_circle_outline,
+
+                  title: "Add Food",
+
+                  subtitle: "Add a new food item to the campus menu",
+
+                  color: Colors.orange,
+
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddFoodScreen(),
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _summary(
-                            'New',
-                            count('Confirmed'),
-                            Colors.deepOrange,
-                          ),
-                          _summary(
-                            'Preparing',
-                            count('Preparing'),
-                            Colors.orange,
-                          ),
-                          _summary('Ready', count('Ready'), Colors.blue),
-                          _summary(
-                            'Completed',
-                            count('Completed'),
-                            Colors.green,
-                          ),
-                        ],
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                // MANAGE MENU
+                _quickAction(
+                  icon: Icons.restaurant_menu,
+
+                  title: "Manage Menu",
+
+                  subtitle: "Update food, prices and availability",
+
+                  color: Colors.green,
+
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ManageMenuScreen(),
                       ),
-                      const SizedBox(height: 25),
-                    ],
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
 
-              // ==========================
-              // OVERVIEW
-              // ==========================
-              sectionTitle("Overview", "Manage your CampusEats system"),
+                const SizedBox(height: 12),
 
-              const SizedBox(height: 15),
+                // ORDERS
+                _quickAction(
+                  icon: Icons.receipt_long,
 
-              GridView.count(
-                crossAxisCount: 2,
+                  title: "Manage Orders",
 
-                crossAxisSpacing: 14,
+                  subtitle: "Check and manage student orders",
 
-                mainAxisSpacing: 14,
+                  color: Colors.blue,
 
-                childAspectRatio: 0.95,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OrdersScreen(),
+                      ),
+                    );
+                  },
+                ),
 
-                shrinkWrap: true,
+                const SizedBox(height: 12),
 
-                physics: const NeverScrollableScrollPhysics(),
+                // KITCHEN
+                _quickAction(
+                  icon: Icons.restaurant,
 
-                children: [
-                  // ADD FOOD
-                  dashboardCard(
-                    context,
-                    Icons.fastfood,
-                    "Add Food",
-                    "Add new items",
-                    Colors.orange,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AddFoodScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                  title: "Kitchen Control",
 
-                  // MANAGE MENU
-                  dashboardCard(
-                    context,
-                    Icons.restaurant_menu,
-                    "Manage Menu",
-                    "Edit campus menu",
-                    Colors.green,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ManageMenuScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                  subtitle: "Monitor preparation and pickup",
 
-                  // ORDERS
-                  dashboardCard(
-                    context,
-                    Icons.receipt_long,
-                    "Orders",
-                    "View all orders",
-                    Colors.blue,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const OrdersScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                  color: Colors.deepOrange,
 
-                  // KITCHEN
-                  dashboardCard(
-                    context,
-                    Icons.restaurant,
-                    "Kitchen",
-                    "Kitchen control",
-                    Colors.deepOrange,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const KitchenDashboard(),
-                        ),
-                      );
-                    },
-                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const KitchenDashboard(),
+                      ),
+                    );
+                  },
+                ),
 
-                  // REPORTS
-                  dashboardCard(
-                    context,
-                    Icons.bar_chart,
-                    "Reports",
-                    "View sales reports",
-                    Colors.purple,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ReportsScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                const SizedBox(height: 12),
 
-                  // ANALYTICS
-                  dashboardCard(
-                    context,
-                    Icons.analytics,
-                    "Analytics",
-                    "Track performance",
-                    Colors.indigo,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AnalyticsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                // REPORTS
+                _quickAction(
+                  icon: Icons.bar_chart,
 
-              const SizedBox(height: 28),
+                  title: "Reports",
 
-              // ==========================
-              // QUICK MANAGEMENT
-              // ==========================
-              sectionTitle("Quick Management", "Frequently used admin actions"),
+                  subtitle: "Check sales and order statistics",
 
-              const SizedBox(height: 14),
+                  color: Colors.purple,
 
-              // ADD FOOD
-              _quickAction(
-                icon: Icons.add_circle_outline,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ReportsScreen()),
+                    );
+                  },
+                ),
 
-                title: "Add Food",
-
-                subtitle: "Add a new food item to the campus menu",
-
-                color: Colors.orange,
-
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AddFoodScreen(),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              // MANAGE MENU
-              _quickAction(
-                icon: Icons.restaurant_menu,
-
-                title: "Manage Menu",
-
-                subtitle: "Update food, prices and availability",
-
-                color: Colors.green,
-
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ManageMenuScreen(),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              // ORDERS
-              _quickAction(
-                icon: Icons.receipt_long,
-
-                title: "Manage Orders",
-
-                subtitle: "Check and manage student orders",
-
-                color: Colors.blue,
-
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const OrdersScreen(),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              // KITCHEN
-              _quickAction(
-                icon: Icons.restaurant,
-
-                title: "Kitchen Control",
-
-                subtitle: "Monitor preparation and pickup",
-
-                color: Colors.deepOrange,
-
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const KitchenDashboard(),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              // REPORTS
-              _quickAction(
-                icon: Icons.bar_chart,
-
-                title: "Reports",
-
-                subtitle: "Check sales and order statistics",
-
-                color: Colors.purple,
-
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ReportsScreen()),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 20),
-            ],
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),

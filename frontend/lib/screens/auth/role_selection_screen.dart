@@ -16,8 +16,6 @@ class RoleSelectionScreen extends StatelessWidget {
         MaterialPageRoute(builder: (context) => LoginScreen(role: role)),
       );
     } else if (role == "Kitchen Staff") {
-      ApiService.clearStudentSession();
-      ApiService.clearFacultySession();
       context.read<CartProvider>().switchSession('kitchen');
       ApiService.startDemoKitchenSession();
       Navigator.push(

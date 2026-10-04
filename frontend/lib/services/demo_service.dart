@@ -67,7 +67,10 @@ class DemoService {
     return List<Map<String, dynamic>>.from(_menus[cafeteria] ?? const []);
   }
 
-  static Map<String, dynamic> addMenuItem(Map<String, dynamic> food, String cafeteria) {
+  static Map<String, dynamic> addMenuItem(
+    Map<String, dynamic> food,
+    String cafeteria,
+  ) {
     final item = _food(
       _nextMenuId++,
       food['name']?.toString() ?? 'New Food',
@@ -80,11 +83,21 @@ class DemoService {
     return {'success': true, 'food': Map<String, dynamic>.from(item)};
   }
 
-  static Map<String, dynamic> updateMenuItem(int id, Map<String, dynamic> food, String cafeteria) {
+  static Map<String, dynamic> updateMenuItem(
+    int id,
+    Map<String, dynamic> food,
+    String cafeteria,
+  ) {
     final items = _menus[cafeteria]!;
     final index = items.indexWhere((item) => item['id'] == id);
     if (index < 0) throw Exception('Food item not found');
-    items[index] = {...items[index], ...food, 'id': id, 'cafeteria': cafeteria, 'cafeteriaId': _cafeteriaId(cafeteria)};
+    items[index] = {
+      ...items[index],
+      ...food,
+      'id': id,
+      'cafeteria': cafeteria,
+      'cafeteriaId': _cafeteriaId(cafeteria),
+    };
     return {'success': true, 'food': Map<String, dynamic>.from(items[index])};
   }
 
@@ -93,7 +106,11 @@ class DemoService {
     return {'success': true};
   }
 
-  static Map<String, dynamic> updateAvailability(int id, bool available, String cafeteria) {
+  static Map<String, dynamic> updateAvailability(
+    int id,
+    bool available,
+    String cafeteria,
+  ) {
     final item = _menus[cafeteria]!.firstWhere((item) => item['id'] == id);
     item['isAvailable'] = available;
     return {'success': true, 'food': item};
@@ -102,7 +119,10 @@ class DemoService {
   static Map<String, dynamic> placeOrder(Map<String, dynamic> data) {
     final rawItems = data['items'];
     final items = rawItems is List
-        ? rawItems.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList()
+        ? rawItems
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList()
         : <Map<String, dynamic>>[];
     if (items.isEmpty) {
       throw Exception('Your cart is empty.');
@@ -116,7 +136,9 @@ class DemoService {
       item['cafeteriaId'] = _cafeteriaId(cafeteria);
     }
     if (items.isEmpty || items.any((item) => item['cafeteria'] != cafeteria)) {
-      throw Exception('Please checkout your current cafeteria order before ordering from another cafeteria.');
+      throw Exception(
+        'Please checkout your current cafeteria order before ordering from another cafeteria.',
+      );
     }
     final order = {
       'id': _nextOrderId++,
@@ -132,33 +154,66 @@ class DemoService {
       'cafeteriaId': _cafeteriaId(cafeteria),
       'createdAt': DateTime.now().toIso8601String(),
     };
-    _orders.putIfAbsent(cafeteria, () => <Map<String, dynamic>>[]).insert(0, order);
+    _orders
+        .putIfAbsent(cafeteria, () => <Map<String, dynamic>>[])
+        .insert(0, order);
     return {'success': true, 'order': order};
   }
 
-  static List<dynamic> getOrders(String cafeteria) => List<Map<String, dynamic>>.from(_orders[_canonicalCafeteria(cafeteria)] ?? const []);
+  static List<dynamic> getOrders(String cafeteria) =>
+      List<Map<String, dynamic>>.from(
+        _orders[_canonicalCafeteria(cafeteria)] ?? const [],
+      );
 
-  static Map<String, dynamic> updateOrderStatus(int id, String status, String cafeteria) {
-    final order = (_orders[_canonicalCafeteria(cafeteria)] ?? const <Map<String, dynamic>>[]).cast<Map<String, dynamic>>().firstWhere((item) => item['id'] == id);
+  static Map<String, dynamic> updateOrderStatus(
+    int id,
+    String status,
+    String cafeteria,
+  ) {
+    final order =
+        (_orders[_canonicalCafeteria(cafeteria)] ??
+                const <Map<String, dynamic>>[])
+            .cast<Map<String, dynamic>>()
+            .firstWhere((item) => item['id'] == id);
     order['status'] = status;
     return {'success': true, 'order': order};
   }
 
   static Map<String, dynamic> analytics(String cafeteria) {
-    final orders = _orders[_canonicalCafeteria(cafeteria)] ?? const <Map<String, dynamic>>[];
-    int count(String status) => orders.where((order) => order['status'] == status).length;
+    final orders =
+        _orders[_canonicalCafeteria(cafeteria)] ??
+        const <Map<String, dynamic>>[];
+    int count(String status) =>
+        orders.where((order) => order['status'] == status).length;
     return {
       'success': true,
       'cafeteriaId': _cafeteriaId(cafeteria),
       'cafeteriaName': cafeteria,
       'allTime': {'orders': orders.length, 'revenue': revenues[cafeteria] ?? 0},
-      'today': {'orders': orders.length, 'revenue': orders.fold<double>(0, (sum, order) => sum + _number(order['totalAmount']))},
-      'status': {'confirmed': count('Confirmed'), 'preparing': count('Preparing'), 'ready': count('Ready'), 'completed': count('Completed')},
+      'today': {
+        'orders': orders.length,
+        'revenue': orders.fold<double>(
+          0,
+          (sum, order) => sum + _number(order['totalAmount']),
+        ),
+      },
+      'status': {
+        'confirmed': count('Confirmed'),
+        'preparing': count('Preparing'),
+        'ready': count('Ready'),
+        'completed': count('Completed'),
+      },
     };
   }
 
-  static double _number(dynamic value) => value is num ? value.toDouble() : double.tryParse(value?.toString() ?? '') ?? 0;
-  static String _cafeteriaId(String name) => name == 'Cafe PESU' ? 'cafe_pesu' : name == 'Non-Veg Cafeteria' ? 'nonveg_cafeteria' : 'bengaluru_cafe';
+  static double _number(dynamic value) => value is num
+      ? value.toDouble()
+      : double.tryParse(value?.toString() ?? '') ?? 0;
+  static String _cafeteriaId(String name) => name == 'Cafe PESU'
+      ? 'cafe_pesu'
+      : name == 'Non-Veg Cafeteria'
+      ? 'nonveg_cafeteria'
+      : 'bengaluru_cafe';
   static String _canonicalCafeteria(String? value) {
     switch (value?.trim().toLowerCase()) {
       case 'cafe pesu':
@@ -172,7 +227,14 @@ class DemoService {
     }
   }
 
-  static Map<String, dynamic> _food(int id, String name, double price, String category, {String description = '', String image = ''}) => {
+  static Map<String, dynamic> _food(
+    int id,
+    String name,
+    double price,
+    String category, {
+    String description = '',
+    String image = '',
+  }) => {
     'id': id,
     'name': name,
     'price': price,
@@ -181,8 +243,22 @@ class DemoService {
     'image': image,
     'imagePath': image,
     'isAvailable': true,
-    'cafeteria': name == 'Pasta' || name == 'Veg Burger' || name == 'Cold Coffee' ? 'Cafe PESU' : name == 'Chicken Biryani' || name == 'Chicken 65' || name == 'Egg Roll' ? 'Non-Veg Cafeteria' : 'Bengaluru Cafe',
-    'cafeteriaId': name == 'Pasta' || name == 'Veg Burger' || name == 'Cold Coffee' ? 'cafe_pesu' : name == 'Chicken Biryani' || name == 'Chicken 65' || name == 'Egg Roll' ? 'nonveg_cafeteria' : 'bengaluru_cafe',
+    'cafeteria':
+        name == 'Pasta' || name == 'Veg Burger' || name == 'Cold Coffee'
+        ? 'Cafe PESU'
+        : name == 'Chicken Biryani' ||
+              name == 'Chicken 65' ||
+              name == 'Egg Roll'
+        ? 'Non-Veg Cafeteria'
+        : 'Bengaluru Cafe',
+    'cafeteriaId':
+        name == 'Pasta' || name == 'Veg Burger' || name == 'Cold Coffee'
+        ? 'cafe_pesu'
+        : name == 'Chicken Biryani' ||
+              name == 'Chicken 65' ||
+              name == 'Egg Roll'
+        ? 'nonveg_cafeteria'
+        : 'bengaluru_cafe',
     'createdAt': DateTime.now().toIso8601String(),
   };
 }

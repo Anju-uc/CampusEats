@@ -24,4 +24,30 @@ class CartItem {
   double get totalPrice {
     return price * quantity;
   }
+
+  Map<String, dynamic> toJson() => {
+    'menuItemId': menuItemId,
+    'backendMenuItemId': backendMenuItemId,
+    'name': name,
+    'image': image,
+    'price': price,
+    'cafeteria': cafeteria,
+    'quantity': quantity,
+  };
+
+  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
+    menuItemId: json['menuItemId'] is int
+        ? json['menuItemId'] as int
+        : int.tryParse(json['menuItemId']?.toString() ?? ''),
+    backendMenuItemId: json['backendMenuItemId']?.toString(),
+    name: json['name']?.toString() ?? 'Menu item',
+    image: json['image']?.toString() ?? '',
+    price: (json['price'] is num)
+        ? (json['price'] as num).toDouble()
+        : (double.tryParse(json['price']?.toString() ?? '') ?? 0.0),
+    cafeteria: json['cafeteria']?.toString() ?? 'Bengaluru Cafe',
+    quantity: (json['quantity'] is num)
+        ? (json['quantity'] as num).toInt()
+        : (int.tryParse(json['quantity']?.toString() ?? '') ?? 1),
+  );
 }

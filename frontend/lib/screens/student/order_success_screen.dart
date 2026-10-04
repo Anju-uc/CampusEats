@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../models/order_model.dart';
 import 'order_tracking_screen.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
-  const OrderSuccessScreen({super.key});
+  const OrderSuccessScreen({super.key, this.order});
+
+  final OrderModel? order;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +57,7 @@ class OrderSuccessScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const OrderTrackingScreen(),
+                        builder: (context) => OrderTrackingScreen(order: order),
                       ),
                     );
                   },

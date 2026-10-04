@@ -5,6 +5,7 @@ const {
   validateRegister,
   validateLogin,
   validateStudentStatus,
+  validateStaffLogin,
 } = require("./auth.validator");
 const { authenticate } = require("../../middleware/auth.middleware");
 const { requireRole } = require("../../middleware/role.middleware");
@@ -14,6 +15,8 @@ const router = express.Router();
 
 router.post("/register", validateRegister, authController.register);
 router.post("/login", validateLogin, authController.login);
+router.post("/staff-login", validateStaffLogin, authController.staffLogin);
+router.post("/campus-checkin", authenticate, authController.campusCheckin);
 
 router.patch(
   "/students/:studentId/status",

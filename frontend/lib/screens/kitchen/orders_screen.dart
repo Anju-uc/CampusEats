@@ -13,6 +13,37 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> {
+  String _formatIsoTime(String? iso) {
+    if (iso == null || iso.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(iso).toLocal();
+      final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      return '$hour:$minute $period';
+    } catch (_) {
+      return iso;
+    }
+  }
+
+  String _formatIsoWindow(String? startIso, String? endIso) {
+    if (startIso == null || startIso.isEmpty) return '';
+    final startStr = _formatIsoTime(startIso);
+    if (endIso == null || endIso.isEmpty) {
+      try {
+        final startDt = DateTime.parse(startIso).toLocal();
+        final endDt = startDt.add(const Duration(minutes: 15));
+        final endHour = endDt.hour % 12 == 0 ? 12 : endDt.hour % 12;
+        final endMinute = endDt.minute.toString().padLeft(2, '0');
+        final endPeriod = endDt.hour >= 12 ? 'PM' : 'AM';
+        return '$startStr – $endHour:$endMinute $endPeriod';
+      } catch (_) {
+        return startStr;
+      }
+    }
+    return '$startStr – ${_formatIsoTime(endIso)}';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -20,6 +51,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     // Load orders from SQLite/backend
     Future.microtask(() async {
       await ApiService.restoreAdminSession();
+      await ApiService.restoreKitchenSession();
       if (!mounted) return;
       await context.read<OrderProvider>().loadOrders();
     });
@@ -137,57 +169,94 @@ class _OrdersScreenState extends State<OrdersScreen> {
               itemBuilder: (context, index) {
                 final orderMap = orders[index];
                 final order = OrderModel.fromMap(orderMap);
+                final isScheduled = order.isScheduled;
+                final isNoShow = order.pickupStatus == 'NO_SHOW' || order.status == 'NO_SHOW';
+                final isReleased = order.pickupStatus == 'RELEASED' || order.status == 'RELEASED';
+                final pickupEndAt = order.pickupWindowEndAt != null
+                    ? DateTime.tryParse(order.pickupWindowEndAt!)?.toLocal()
+                    : null;
+                final isExpired = pickupEndAt != null && DateTime.now().isAfter(pickupEndAt);
 
                 return Card(
                   elevation: 4,
-
                   margin: const EdgeInsets.only(bottom: 15),
-
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-
                       children: [
                         // ==================================================
-                        // FOOD + STATUS
+                        // FOOD + ORDER TYPE + STATUS
                         // ==================================================
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
                           children: [
                             Expanded(
-                              child: Text(
-                                order.foodName,
-
-                                style: const TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      order.foodName,
+                                      style: const TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isScheduled
+                                          ? Colors.orange.shade100
+                                          : Colors.grey.shade200,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      isScheduled ? "SCHEDULED" : "ASAP",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: isScheduled
+                                            ? Colors.orange.shade900
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 6,
                               ),
-
                               decoration: BoxDecoration(
-                                color: getStatusColor(
-                                  order.status,
-                                ).withOpacity(0.15),
-
+                                color: (isReleased
+                                        ? Colors.purple
+                                        : isNoShow
+                                        ? Colors.red
+                                        : getStatusColor(order.status))
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-
                               child: Text(
-                                order.status,
-
+                                isReleased
+                                    ? 'RELEASED'
+                                    : isNoShow
+                                    ? 'NO SHOW'
+                                    : order.status,
                                 style: TextStyle(
-                                  color: getStatusColor(order.status),
-
+                                  color: isReleased
+                                      ? Colors.purple
+                                      : isNoShow
+                                      ? Colors.red
+                                      : getStatusColor(order.status),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -197,13 +266,78 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
                         const SizedBox(height: 10),
 
-                        Text(
-                          'Order #${orderProvider.getOrderId(orderMap)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            Text(
+                              'Order #${orderProvider.getOrderId(orderMap)}',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: order.isFaculty ||
+                                        orderProvider.getUserType(orderMap) ==
+                                            'Faculty'
+                                    ? Colors.deepPurple.shade50
+                                    : Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: order.isFaculty ||
+                                          orderProvider.getUserType(orderMap) ==
+                                              'Faculty'
+                                      ? Colors.deepPurple.shade200
+                                      : Colors.blue.shade200,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    order.isFaculty ||
+                                            orderProvider
+                                                    .getUserType(orderMap) ==
+                                                'Faculty'
+                                        ? Icons.person_rounded
+                                        : Icons.school_rounded,
+                                    size: 13,
+                                    color: order.isFaculty ||
+                                            orderProvider
+                                                    .getUserType(orderMap) ==
+                                                'Faculty'
+                                        ? Colors.deepPurple
+                                        : Colors.blue.shade800,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    order.isFaculty ||
+                                            orderProvider
+                                                    .getUserType(orderMap) ==
+                                                'Faculty'
+                                        ? 'Faculty'
+                                        : 'Student',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: order.isFaculty ||
+                                              orderProvider
+                                                      .getUserType(orderMap) ==
+                                                  'Faculty'
+                                          ? Colors.deepPurple
+                                          : Colors.blue.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Customer: ${orderProvider.getStudentName(orderMap)}',
+                          'Customer: ${orderProvider.getCustomerName(orderMap)}',
                         ),
                         const SizedBox(height: 8),
                         ...orderProvider
@@ -216,30 +350,119 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               ),
                             ),
 
+                        // SCHEDULED ORDER TIMING BOX
+                        if (isScheduled && order.scheduledPickupAt != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF8F0),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.orange.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.schedule, size: 16, color: Colors.orange),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      "Scheduled Pickup: ${_formatIsoTime(order.scheduledPickupAt)}",
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (order.preparationStartAt != null) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.kitchen, size: 16, color: Colors.deepOrange),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "Prepare by: ${_formatIsoTime(order.preparationStartAt)}",
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.deepOrange,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Pickup Window: ${_formatIsoWindow(order.scheduledPickupAt, order.pickupWindowEndAt)}",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.orange.shade900,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  "Pickup Status: ${order.pickupStatus}",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: isNoShow || isReleased ? Colors.red : Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 12),
 
                         // ==================================================
-                        // TOTAL
+                        // BILL BREAKDOWN (Subtotal, GST, Total)
                         // ==================================================
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.currency_rupee,
-                              color: Colors.green,
-                            ),
-
-                            const SizedBox(width: 5),
-
-                            Text(
-                              order.total.toStringAsFixed(0),
-
-                              style: const TextStyle(
-                                fontSize: 17,
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Item Subtotal:', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                                  Text('₹${order.subtotal.toStringAsFixed(0)}', style: TextStyle(fontSize: 13, color: Colors.grey.shade800, fontWeight: FontWeight.w500)),
+                                ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 2),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('GST:', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                                  Text('₹${order.gst.toStringAsFixed(0)}', style: TextStyle(fontSize: 13, color: Colors.grey.shade800, fontWeight: FontWeight.w500)),
+                                ],
+                              ),
+                              const Divider(height: 10, thickness: 1),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Total:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green)),
+                                  Text(
+                                    '₹${order.total.toStringAsFixed(0)}',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
 
                         const SizedBox(height: 8),
@@ -276,20 +499,34 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           padding: const EdgeInsets.all(12),
 
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            color: isReleased
+                                ? Colors.purple.shade50
+                                : isNoShow
+                                ? Colors.red.shade50
+                                : Colors.grey.shade100,
 
                             borderRadius: BorderRadius.circular(10),
                           ),
 
                           child: Text(
-                            getStatusMessage(order.status),
+                            isReleased
+                                ? 'Uncollected order has been released for replacement/policy preparation.'
+                                : isNoShow
+                                ? 'Student did not collect during pickup window (NO SHOW).'
+                                : getStatusMessage(order.status),
 
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: isReleased
+                                  ? Colors.purple.shade900
+                                  : isNoShow
+                                  ? Colors.red.shade900
+                                  : Colors.black87,
+                            ),
                           ),
                         ),
 
-                        if (orderProvider.getStatus(orderMap) == 'Confirmed' ||
-                          orderProvider.getStatus(orderMap) == 'Accepted') ...[
+                        if (orderProvider.getStatus(orderMap) == 'Pending') ...[
                           const SizedBox(height: 15),
                           SizedBox(
                             width: double.infinity,
@@ -298,26 +535,52 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 final orderId = orderProvider.getOrderId(
                                   orderMap,
                                 );
-                                final nextStatus = orderProvider.getStatus(orderMap) == 'Confirmed'
-                                  ? 'Accepted'
-                                  : 'Preparing';
-                                debugPrint(
-                                  'ORDER STATUS UPDATE\n'
-                                  'Order ID: $orderId\n'
-                                  'Old Status: ${orderProvider.getStatus(orderMap)}\n'
-                                  'New Status: $nextStatus',
-                                );
                                 final success = await orderProvider
-                                    .updateOrderStatus(orderId, nextStatus);
+                                    .updateOrderStatus(orderId, 'CONFIRMED');
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
                                       success
-                                            ? nextStatus == 'Accepted'
-                                              ? 'Order accepted.'
-                                              : 'Order moved to Preparing.'
-                                            : 'Failed to update order.',
+                                          ? 'Order confirmed.'
+                                          : 'Failed to confirm order.',
+                                    ),
+                                    backgroundColor: success
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.check_circle_outline),
+                              label: const Text('CONFIRM ORDER'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ] else if (orderProvider.getStatus(orderMap) ==
+                            'Confirmed') ...[
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final orderId = orderProvider.getOrderId(
+                                  orderMap,
+                                );
+                                final success = await orderProvider
+                                    .updateOrderStatus(orderId, 'PREPARING');
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? 'Order moved to Preparing.'
+                                          : 'Failed to update order.',
                                     ),
                                     backgroundColor: success
                                         ? Colors.green
@@ -326,13 +589,199 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 );
                               },
                               icon: const Icon(Icons.local_fire_department),
-                              label: Text(
-                                orderProvider.getStatus(orderMap) == 'Confirmed'
-                                    ? 'ACCEPT ORDER'
-                                    : 'START PREPARING',
-                              ),
+                              label: const Text('START PREPARING'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ] else if (orderProvider.getStatus(orderMap) ==
+                            'Preparing') ...[
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final orderId = orderProvider.getOrderId(
+                                  orderMap,
+                                );
+                                final success = await orderProvider
+                                    .updateOrderStatus(orderId, 'READY');
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? 'Order marked as Ready for Pickup!'
+                                          : 'Failed to update order.',
+                                    ),
+                                    backgroundColor: success
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.notifications_active),
+                              label: const Text('MARK READY'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ] else if (orderProvider.getStatus(orderMap) ==
+                            'Ready' && !isReleased) ...[
+                          const SizedBox(height: 15),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    final orderId = orderProvider.getOrderId(
+                                      orderMap,
+                                    );
+                                    final success = await orderProvider
+                                        .updateOrderStatus(orderId, 'COMPLETED');
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          success
+                                              ? 'Order completed!'
+                                              : 'Failed to update order.',
+                                        ),
+                                        backgroundColor: success
+                                            ? Colors.green
+                                            : Colors.red,
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.check_circle),
+                                  label: const Text('COLLECTED'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 13,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (isScheduled && (isNoShow || isExpired)) ...[
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      final orderId = orderProvider.getOrderId(
+                                        orderMap,
+                                      );
+                                      final success = await orderProvider
+                                          .releaseUncollectedOrder(orderId);
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            success
+                                                ? 'Uncollected order released.'
+                                                : (orderProvider.error ?? 'Failed to release order.'),
+                                          ),
+                                          backgroundColor: success
+                                              ? Colors.purple
+                                              : Colors.red,
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.refresh_rounded),
+                                    label: const Text(
+                                      'RELEASE UNCOLLECTED',
+                                      style: TextStyle(fontSize: 11),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.purple,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ] else if (isScheduled && isExpired && !isNoShow) ...[
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      final orderId = orderProvider.getOrderId(
+                                        orderMap,
+                                      );
+                                      final success = await orderProvider
+                                          .markNoShow(orderId);
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            success
+                                                ? 'Order marked as NO SHOW.'
+                                                : (orderProvider.error ?? 'Failed to mark NO SHOW.'),
+                                          ),
+                                          backgroundColor: success
+                                              ? Colors.red
+                                              : Colors.red,
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.cancel_outlined),
+                                    label: const Text(
+                                      'NO SHOW',
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ] else if ((isNoShow || isExpired) && !isReleased) ...[
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final orderId = orderProvider.getOrderId(
+                                  orderMap,
+                                );
+                                final success = await orderProvider
+                                    .releaseUncollectedOrder(orderId);
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? 'Uncollected order released.'
+                                          : (orderProvider.error ?? 'Failed to release order.'),
+                                    ),
+                                    backgroundColor: success
+                                        ? Colors.purple
+                                        : Colors.red,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.refresh_rounded),
+                              label: const Text('RELEASE UNCOLLECTED ORDER'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.purple,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 13,

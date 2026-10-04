@@ -1241,6 +1241,7 @@ class FoodItem {
   final String image;
   final String description;
   final String emoji;
+  final String? backendId;
 
   FoodItem({
     required this.name,
@@ -1250,6 +1251,7 @@ class FoodItem {
     required this.image,
     required this.description,
     required this.emoji,
+    this.backendId,
   });
 
   IconData get icon {

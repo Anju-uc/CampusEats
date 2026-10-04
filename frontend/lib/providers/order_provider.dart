@@ -21,13 +21,13 @@ class OrderProvider extends ChangeNotifier {
     final value = status?.toString().trim();
 
     if (value == null || value.isEmpty) {
-      return 'Confirmed';
+      return 'Pending';
     }
 
     switch (value.toLowerCase()) {
       case 'pending':
       case 'new':
-        return 'Confirmed';
+        return 'Pending';
       case 'confirmed':
         return 'Confirmed';
       case 'preparing':
@@ -45,6 +45,31 @@ class OrderProvider extends ChangeNotifier {
         return 'Cancelled';
       default:
         return value;
+    }
+  }
+
+  static String toBackendStatus(String status) {
+    switch (status.trim().toLowerCase()) {
+      case 'pending':
+      case 'new':
+        return 'PENDING';
+      case 'confirmed':
+        return 'CONFIRMED';
+      case 'preparing':
+        return 'PREPARING';
+      case 'ready':
+      case 'ready for pickup':
+      case 'ready_for_pickup':
+        return 'READY';
+      case 'completed':
+      case 'picked up':
+      case 'picked_up':
+        return 'COMPLETED';
+      case 'cancelled':
+      case 'canceled':
+        return 'CANCELLED';
+      default:
+        return status.trim().toUpperCase();
     }
   }
 
@@ -67,20 +92,25 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final hasStudentSession =
-          ApiService.studentToken != null ||
-          await ApiService.restoreStudentSession();
-      if (studentOnly && !hasStudentSession) {
+      final isStudent =
+          ApiService.activeRole == 'student' && ApiService.studentToken != null;
+      final isFaculty =
+          ApiService.activeRole == 'teacher' && ApiService.facultyToken != null;
+      final isCustomer = isStudent || isFaculty;
+
+      if (studentOnly && !isCustomer) {
         throw Exception('Student session expired. Please log in again.');
       }
-      final hasStaffSession =
-          !hasStudentSession &&
-          (ApiService.adminToken != null ||
-              await ApiService.restoreAdminSession());
+      final staffToken = ApiService.activeRole == 'kitchen'
+          ? (ApiService.kitchenToken ?? ApiService.adminToken)
+          : (ApiService.adminToken ?? ApiService.kitchenToken);
+      final isStaff =
+          (ApiService.activeRole == 'admin' ||
+              ApiService.activeRole == 'kitchen') &&
+          staffToken != null;
       final hasRealStaffToken =
-          hasStaffSession &&
-          !(ApiService.adminToken?.startsWith('demo-') ?? true);
-      final result = hasStudentSession
+          isStaff && !staffToken.startsWith('demo-');
+      final result = isCustomer
           ? await ApiService.getStudentOrders()
           : hasRealStaffToken
           ? await ApiService.getStaffOrders()
@@ -124,7 +154,7 @@ class OrderProvider extends ChangeNotifier {
   // ============================================================
 
   String getOrderId(Map<String, dynamic> order) {
-    final id = order['id'] ?? order['orderId'];
+    final id = order['_id'] ?? order['id'] ?? order['orderId'];
 
     return id?.toString() ?? '';
   }
@@ -297,13 +327,31 @@ class OrderProvider extends ChangeNotifier {
   // ============================================================
 
   String getStudentName(Map<String, dynamic> order) {
-    final name = order['studentName'] ?? order['student_name'];
+    final name = order['customerName'] ??
+        order['userName'] ??
+        order['studentName'] ??
+        order['student_name'];
 
     if (name != null && name.toString().trim().isNotEmpty) {
       return name.toString();
     }
 
+    return getUserType(order);
+  }
+
+  String getUserType(Map<String, dynamic> order) {
+    final raw = order['userType'] ??
+        order['customerType'] ??
+        order['userRole'] ??
+        order['role'];
+    if (raw != null && raw.toString().toLowerCase().contains('faculty')) {
+      return 'Faculty';
+    }
     return 'Student';
+  }
+
+  String getCustomerName(Map<String, dynamic> order) {
+    return getStudentName(order);
   }
 
   // ============================================================
@@ -366,6 +414,46 @@ class OrderProvider extends ChangeNotifier {
   }
 
   // ============================================================
+  // SCHEDULED ORDER HELPERS
+  // ============================================================
+
+  String getOrderType(Map<String, dynamic> order) {
+    return order['orderType']?.toString() ?? 'ASAP';
+  }
+
+  bool isScheduledOrder(Map<String, dynamic> order) {
+    return getOrderType(order) == 'SCHEDULED';
+  }
+
+  String? getScheduledPickupAt(Map<String, dynamic> order) {
+    final val = order['scheduledPickupAt'];
+    return val != null && val.toString().trim().isNotEmpty ? val.toString() : null;
+  }
+
+  String? getPickupWindowEndAt(Map<String, dynamic> order) {
+    final val = order['pickupWindowEndAt'];
+    return val != null && val.toString().trim().isNotEmpty ? val.toString() : null;
+  }
+
+  String? getPreparationStartAt(Map<String, dynamic> order) {
+    final val = order['preparationStartAt'];
+    return val != null && val.toString().trim().isNotEmpty ? val.toString() : null;
+  }
+
+  String? getNoShowAt(Map<String, dynamic> order) {
+    final val = order['noShowAt'];
+    return val != null && val.toString().trim().isNotEmpty ? val.toString() : null;
+  }
+
+  String getPickupStatus(Map<String, dynamic> order) {
+    final status = order['pickupStatus'];
+    if (status != null && status.toString().trim().isNotEmpty) {
+      return status.toString();
+    }
+    return isScheduledOrder(order) ? 'UPCOMING' : 'NOT_SCHEDULED';
+  }
+
+  // ============================================================
   // ADD ORDER
   // ============================================================
 
@@ -396,8 +484,8 @@ class OrderProvider extends ChangeNotifier {
     if (order is OrderModel) {
       return {
         'id': order.id ?? DateTime.now().millisecondsSinceEpoch,
-        'studentName': order.studentName ?? 'Student',
-        'studentEmail': order.studentEmail ?? '',
+        'studentName': order.studentName,
+        'studentEmail': order.studentEmail,
         'items': [
           {
             'name': order.foodName,
@@ -410,8 +498,14 @@ class OrderProvider extends ChangeNotifier {
         ],
         'totalAmount': order.total,
         'status': order.status,
-        'paymentStatus': order.paymentStatus ?? 'Paid',
+        'paymentStatus': order.paymentStatus,
         'createdAt': order.date,
+        'orderType': order.orderType,
+        'scheduledPickupAt': order.scheduledPickupAt,
+        'pickupWindowEndAt': order.pickupWindowEndAt,
+        'preparationStartAt': order.preparationStartAt,
+        'noShowAt': order.noShowAt,
+        'pickupStatus': order.pickupStatus,
       };
     }
 
@@ -428,6 +522,7 @@ class OrderProvider extends ChangeNotifier {
 
   Future<bool> updateOrderStatus(String orderId, String status) async {
     final normalizedStatus = normalizeStatus(status);
+    final backendStatus = toBackendStatus(status);
     final currentOrder = _orders.cast<Map<String, dynamic>?>().firstWhere(
       (order) => order != null && getOrderId(order) == orderId,
       orElse: () => null,
@@ -441,12 +536,12 @@ class OrderProvider extends ChangeNotifier {
         'ORDER STATUS UPDATE\n'
         'Order ID: $orderId\n'
         'Old Status: $oldStatus\n'
-        'New Status: $normalizedStatus',
+        'New Status: $normalizedStatus ($backendStatus)',
       );
 
       final response = await ApiService.updateOrderStatus(
         orderId,
-        normalizedStatus,
+        backendStatus,
       );
       debugPrint('ORDER STATUS API RESPONSE: $response');
 
@@ -471,13 +566,31 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> confirmOrder(int orderIndex) async {
+    if (orderIndex < 0 || orderIndex >= _orders.length) {
+      return false;
+    }
+
+    final orderId = getOrderId(_orders[orderIndex]);
+    return updateOrderStatus(orderId, 'CONFIRMED');
+  }
+
+  Future<bool> startPreparing(int orderIndex) async {
+    if (orderIndex < 0 || orderIndex >= _orders.length) {
+      return false;
+    }
+
+    final orderId = getOrderId(_orders[orderIndex]);
+    return updateOrderStatus(orderId, 'PREPARING');
+  }
+
   Future<bool> markReady(int orderIndex) async {
     if (orderIndex < 0 || orderIndex >= _orders.length) {
       return false;
     }
 
     final orderId = getOrderId(_orders[orderIndex]);
-    return updateOrderStatus(orderId, 'Ready');
+    return updateOrderStatus(orderId, 'READY');
   }
 
   Future<bool> markCollected(int orderIndex) async {
@@ -486,7 +599,7 @@ class OrderProvider extends ChangeNotifier {
     }
 
     final orderId = getOrderId(_orders[orderIndex]);
-    return updateOrderStatus(orderId, 'Completed');
+    return updateOrderStatus(orderId, 'COMPLETED');
   }
 
   Future<bool> markPickedUp(int orderIndex) async {
@@ -495,7 +608,45 @@ class OrderProvider extends ChangeNotifier {
     }
 
     final orderId = getOrderId(_orders[orderIndex]);
-    return updateOrderStatus(orderId, 'Completed');
+    return updateOrderStatus(orderId, 'COMPLETED');
+  }
+
+  Future<bool> markNoShow(String orderId) async {
+    try {
+      debugPrint('Marking NO_SHOW for order: $orderId');
+      await ApiService.markOrderNoShow(orderId);
+      final index = _orders.indexWhere((order) => getOrderId(order) == orderId);
+      if (index != -1) {
+        _orders[index]['pickupStatus'] = 'NO_SHOW';
+      }
+      notifyListeners();
+      await _syncFromBackend();
+      return true;
+    } catch (e) {
+      debugPrint('MARK NO_SHOW ERROR: $e');
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> releaseUncollectedOrder(String orderId) async {
+    try {
+      debugPrint('Releasing uncollected order: $orderId');
+      await ApiService.releaseUncollectedOrder(orderId);
+      final index = _orders.indexWhere((order) => getOrderId(order) == orderId);
+      if (index != -1) {
+        _orders[index]['pickupStatus'] = 'RELEASED';
+      }
+      notifyListeners();
+      await _syncFromBackend();
+      return true;
+    } catch (e) {
+      debugPrint('RELEASE UNCOLLECTED ORDER ERROR: $e');
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 
   // ============================================================

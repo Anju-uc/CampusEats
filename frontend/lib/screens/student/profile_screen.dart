@@ -4,6 +4,7 @@ import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
 import '../auth/role_selection_screen.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/cart_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String role;
@@ -35,8 +36,11 @@ class ProfileScreen extends StatelessWidget {
             Text(
               role == "Student"
                   ? (ApiService.studentName ?? "Student")
-                  : (ApiService.facultyName ?? ApiService.adminTitle ?? role),
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  : (ApiService.facultyName ??
+                        (role == "Teacher"
+                            ? "Faculty"
+                            : (ApiService.adminTitle ?? role))),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 5),
@@ -44,8 +48,8 @@ class ProfileScreen extends StatelessWidget {
             Text(
               role == "Student"
                   ? '${ApiService.studentProgram ?? "Student"} Student'
-                  : '${ApiService.facultyProgram ?? role} $role',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+                  : '${ApiService.facultyProgram ?? "Faculty"} ${role == "Teacher" ? "Faculty" : role}',
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
 
             const SizedBox(height: 30),
@@ -65,7 +69,10 @@ class ProfileScreen extends StatelessWidget {
                 subtitle: Text(
                   role == "Student"
                       ? (ApiService.studentId ?? "Student Account")
-                      : (ApiService.facultyId ?? "Authenticated"),
+                      : (ApiService.facultyId ??
+                            (role == "Teacher"
+                                ? "Faculty Account"
+                                : "Authenticated")),
                 ),
               ),
             ),
@@ -74,7 +81,11 @@ class ProfileScreen extends StatelessWidget {
               child: ListTile(
                 leading: const Icon(Icons.person_outline, color: Colors.orange),
                 title: const Text("Account Type"),
-                subtitle: Text(role == "Student" ? "Student" : role),
+                subtitle: Text(
+                  role == "Student"
+                      ? "Student"
+                      : (role == "Teacher" ? "Faculty" : role),
+                ),
               ),
             ),
 
@@ -105,10 +116,11 @@ class ProfileScreen extends StatelessWidget {
                   } else if (role == "Teacher") {
                     await ApiService.clearFacultySession();
                   } else if (role == "Admin") {
-                    ApiService.clearAdminSession();
+                    await ApiService.clearAdminSession();
                   }
                   if (context.mounted) {
                     context.read<OrderProvider>().clearOrders();
+                    context.read<CartProvider>().clearSession();
                   }
                   if (!context.mounted) return;
                   Navigator.pushAndRemoveUntil(

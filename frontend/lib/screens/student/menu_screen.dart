@@ -5,6 +5,7 @@ import '../../models/food_model.dart';
 import '../../models/cart_item.dart';
 import '../../providers/menu_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../widgets/cart_switch_dialog.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -90,7 +91,7 @@ class _MenuScreenState extends State<MenuScreen> {
   // ADD TO CART
   // ============================================================
 
-  void addToCart(BuildContext context, FoodModel food) {
+  Future<void> addToCart(BuildContext context, FoodModel food) async {
     // ----------------------------------------------------------
     // DO NOT ADD UNAVAILABLE FOOD
     // ----------------------------------------------------------
@@ -99,7 +100,7 @@ class _MenuScreenState extends State<MenuScreen> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('This food is currently unavailable.'),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 2),
@@ -125,28 +126,24 @@ class _MenuScreenState extends State<MenuScreen> {
       image: food.imagePath,
     );
 
-    // ----------------------------------------------------------
-    // ADD ITEM
-    //
-    // IMPORTANT:
-    // No bool result.
-    // No cafeteria restriction.
-    // Items from different cafeterias are allowed.
-    // ----------------------------------------------------------
-
-    final added = cartProvider.addItem(item);
-
-    if (!added) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Your cart contains items from ${cartProvider.items.first.cafeteria}. Please checkout first or clear your cart before ordering from another cafeteria.',
-          ),
-          backgroundColor: Colors.red,
-        ),
+    if (cartProvider.hasDifferentCafeteria(selectedCafeteria)) {
+      final currentCafeteria =
+          cartProvider.currentCafeteria ?? 'another cafeteria';
+      final shouldSwitch = await showCartCafeteriaSwitchDialog(
+        context,
+        currentCafeteria: currentCafeteria,
       );
-      return;
+
+      if (!shouldSwitch || !context.mounted) {
+        return;
+      }
+
+      cartProvider.clearAndAddItem(item);
+    } else {
+      cartProvider.addItem(item);
     }
+
+    if (!context.mounted) return;
 
     // ----------------------------------------------------------
     // SUCCESS MESSAGE

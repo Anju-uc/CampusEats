@@ -55,4 +55,16 @@ router.patch(
   orderController.cancelOrder
 );
 
+router.patch(
+  "/:id/no-show",
+  requireRole(ROLES.ADMIN, ROLES.KITCHEN, ROLES.FACULTY),
+  orderController.markNoShow
+);
+
+router.patch(
+  "/:id/release",
+  requireRole(ROLES.ADMIN, ROLES.KITCHEN, ROLES.FACULTY),
+  orderController.releaseUncollectedOrder
+);
+
 module.exports = router;

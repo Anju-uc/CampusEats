@@ -23,10 +23,10 @@ function validateRegister(req, res, next) {
     });
   }
 
-  if (typeof password !== "string" || password.length < 6) {
+  if (typeof password !== "string" || password.length < 4) {
     return res.status(400).json({
       status: "error",
-      message: "Password must be at least 6 characters",
+      message: "Password must be at least 4 characters",
     });
   }
 
@@ -75,9 +75,39 @@ function validateStudentStatus(req, res, next) {
   next();
 }
 
+function validateStaffLogin(req, res, next) {
+  const { identifier, email, staffId, rollNumber, facultyId, password } = req.body;
+  const loginId = identifier || email || staffId || rollNumber || facultyId;
+
+  if (!loginId || !password) {
+    return res.status(400).json({
+      status: "error",
+      message: "Staff identifier and password are required",
+    });
+  }
+
+  if (typeof loginId !== "string" || !loginId.trim()) {
+    return res.status(400).json({
+      status: "error",
+      message: "A valid staff identifier is required",
+    });
+  }
+
+  if (typeof password !== "string" || !password.trim()) {
+    return res.status(400).json({
+      status: "error",
+      message: "Password must be a non-empty string",
+    });
+  }
+
+  req.body.identifier = loginId.trim();
+  next();
+}
+
 module.exports = {
   normalizeStudentId,
   validateRegister,
   validateLogin,
   validateStudentStatus,
+  validateStaffLogin,
 };

@@ -8,38 +8,33 @@ const { ensureReviewIndexes } = require("./modules/reviews/review.service");
 async function ensureDatabaseIndexes() {
   const db = getDb();
 
-  await db.collection("reviews").createIndex({ userId: 1 });
-  await db.collection("reviews").createIndex({ menuItemId: 1 });
-  await db.collection("reviews").createIndex(
-    { userId: 1, menuItemId: 1 },
-    { unique: true }
-  );
+  const safeCreateIndex = async (collection, spec, options) => {
+    try {
+      await db.collection(collection).createIndex(spec, options);
+    } catch (_) {}
+  };
 
-  await db.collection("orders").createIndex({ userId: 1 });
-  await db.collection("orders").createIndex({ createdAt: -1 });
-  await db.collection("orders").createIndex({ "items.menuItemId": 1 });
-  await db.collection("users").createIndex(
-    { studentId: 1 },
-    { unique: true, sparse: true }
-  );
-  await db.collection("studentRegistry").createIndex(
-    { studentId: 1 },
-    { unique: true }
-  );
-  await db.collection("studentRegistry").createIndex({ status: 1 });
-  await db.collection("studentRegistry").createIndex({ program: 1 });
-  await db.collection("carts").createIndex(
-    { userId: 1 },
-    { unique: true }
-  );
-  await db.collection("campusAccessProofs").createIndex(
-    { jti: 1 },
-    { unique: true }
-  );
-  await db.collection("campusAccessProofs").createIndex(
-    { expiresAt: 1 },
-    { expireAfterSeconds: 0 }
-  );
+  await safeCreateIndex("reviews", { userId: 1 });
+  await safeCreateIndex("reviews", { orderId: 1 }, { unique: true, sparse: true });
+  await safeCreateIndex("reviews", { cafeteria: 1 });
+
+  await safeCreateIndex("orders", { userId: 1 });
+  await safeCreateIndex("orders", { createdAt: -1 });
+  await safeCreateIndex("orders", { "items.menuItemId": 1 });
+  await safeCreateIndex("users", { studentId: 1 }, { unique: true, sparse: true });
+  await safeCreateIndex("users", { uid: 1 });
+  await safeCreateIndex("studentRegistry", { studentId: 1 }, { unique: true });
+  await safeCreateIndex("studentRegistry", { status: 1 });
+  await safeCreateIndex("studentRegistry", { program: 1 });
+  await safeCreateIndex("carts", { userId: 1 }, { unique: true });
+  await safeCreateIndex("campusAccessProofs", { jti: 1 }, { unique: true });
+  await safeCreateIndex("campusAccessProofs", { expiresAt: 1 }, { expireAfterSeconds: 0 });
+  await safeCreateIndex("payments", { cashfreeOrderId: 1 }, { unique: true, sparse: true });
+  await safeCreateIndex("payments", { razorpayOrderId: 1 }, { unique: true, sparse: true });
+  await safeCreateIndex("payments", { userId: 1 });
+  await safeCreateIndex("payments", { status: 1 });
+  await safeCreateIndex("payments", { createdAt: -1 });
+  await safeCreateIndex("payments", { campusEatsOrderId: 1 });
 
   await ensureReviewIndexes();
 }

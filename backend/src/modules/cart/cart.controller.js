@@ -80,10 +80,25 @@ async function clearCart(req, res, next) {
   }
 }
 
+async function syncCart(req, res, next) {
+  try {
+    const cart = await cartService.syncCart(req.user.uid, req.body.items);
+
+    res.status(200).json({
+      status: "success",
+      message: "Cart synchronized",
+      data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getCart,
   addToCart,
   updateCartItem,
   removeFromCart,
   clearCart,
+  syncCart,
 };

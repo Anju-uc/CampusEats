@@ -38,10 +38,14 @@ async function authenticate(req, res, next) {
       ...decodedToken,
       uid: user.uid,
       studentId: user.studentId,
+      staffId: user.staffId,
+      rollNumber: user.rollNumber,
       name: user.name,
       program: user.program,
       role: user.role,
       status: user.status,
+      cafeteria: user.cafeteria,
+      cafeteriaId: user.cafeteriaId,
     };
 
     next();

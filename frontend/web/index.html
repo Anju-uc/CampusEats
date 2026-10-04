@@ -31,6 +31,38 @@
 
   <title>frontend</title>
   <link rel="manifest" href="manifest.json">
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    window.openCashfreeCheckout = function(options, onComplete, onError) {
+      try {
+        if (typeof window.Cashfree === 'undefined') {
+          onError('Cashfree SDK is not loaded. Please check your connection.');
+          return;
+        }
+        var mode = (options && options.environment ? options.environment : 'sandbox').toLowerCase();
+        var cashfree = window.Cashfree({ mode: mode });
+        var checkoutOptions = {
+          paymentSessionId: options.paymentSessionId,
+          redirectTarget: options.redirectTarget || '_modal'
+        };
+        cashfree.checkout(checkoutOptions).then(function(result) {
+          if (result && result.error) {
+            onError(result.error.message || 'Payment cancelled or closed');
+          } else {
+            onComplete({
+              orderId: options.orderId,
+              paymentSessionId: options.paymentSessionId
+            });
+          }
+        }).catch(function(err) {
+          onError(err ? (err.message || String(err)) : 'Payment error');
+        });
+      } catch (e) {
+        onError(e.message || String(e));
+      }
+    };
+  </script>
 </head>
 <body>
   <!--

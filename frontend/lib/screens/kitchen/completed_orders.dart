@@ -99,9 +99,9 @@ class CompletedOrders extends StatelessWidget {
                         const SizedBox(height: 10),
 
                         Text(
-                          "₹${order.total.toStringAsFixed(0)}",
+                          "Subtotal: ₹${order.subtotal.toStringAsFixed(0)}  •  GST: ₹${order.gst.toStringAsFixed(0)}  •  Total: ₹${order.total.toStringAsFixed(0)}",
                           style: const TextStyle(
-                            fontSize: 18,
+                            fontSize: 15,
                             color: Colors.green,
                             fontWeight: FontWeight.bold,
                           ),

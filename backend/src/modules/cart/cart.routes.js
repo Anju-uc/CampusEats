@@ -32,4 +32,7 @@ router.delete(
 
 router.delete("/", cartController.clearCart);
 
+router.post("/sync", cartController.syncCart);
+router.put("/sync", cartController.syncCart);
+
 module.exports = router;

@@ -32,17 +32,23 @@ class _KitchenDashboardState extends State<KitchenDashboard> {
   }
 
   Future<void> _loadAuthenticatedOrders() async {
-    if (ApiService.demoMode && ApiService.adminToken == null) {
-      ApiService.startDemoKitchenSession();
-    }
-    final hasSession = await ApiService.restoreAdminSession();
+    final hasKitchen = await ApiService.restoreKitchenSession();
+    final hasAdmin = await ApiService.restoreAdminSession();
     if (!mounted) return;
-    if (!hasSession) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen(role: 'Admin')),
-      );
-      return;
+    if (!hasKitchen && !hasAdmin) {
+      if (ApiService.demoMode &&
+          ApiService.kitchenToken == null &&
+          ApiService.adminToken == null) {
+        ApiService.startDemoKitchenSession();
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(role: 'Kitchen Staff'),
+          ),
+        );
+        return;
+      }
     }
     await context.read<OrderProvider>().loadOrders();
   }
@@ -283,8 +289,11 @@ class _KitchenDashboardState extends State<KitchenDashboard> {
 
           final totalOrders = orders.length;
 
-          final confirmedOrders = orderProvider
-              .getOrdersByStatus('Confirmed')
+          final confirmedOrders = orders
+              .where((order) {
+                final s = orderProvider.getStatus(order);
+                return s == 'Confirmed' || s == 'Pending';
+              })
               .length;
 
           final preparingOrders = orderProvider

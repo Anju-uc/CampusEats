@@ -126,33 +126,28 @@ class _LoginScreenState extends State<LoginScreen> {
         if (result['success'] != true) {
           throw Exception('Invalid cafeteria admin credentials');
         }
+      } else if (widget.role == "Kitchen Staff") {
+        final result = await ApiService.loginKitchen(id, password);
+        if (result['success'] != true) {
+          throw Exception('Invalid kitchen credentials');
+        }
       } else if (widget.role == "Student") {
         await ApiService.loginStudent(id, password);
-        await ApiService.clearFacultySession();
-        ApiService.clearAdminSession();
+        if (!mounted) return;
         await context.read<CartProvider>().switchSession(
           'student:${ApiService.studentUid ?? ApiService.studentId}',
           useBackend: true,
         );
-      } else {
-        final valid = widget.role == "Teacher"
-            ? (id == "teacher" ||
-                      id == "teacher@pes.edu" ||
-                      id.startsWith("faculty")) &&
-                  password == "1234"
-            : (id == "kitchen" || id == "kitchen@campuseats.com") &&
-                  password == "1234";
-        if (!valid) throw Exception('Invalid ${widget.role} credentials');
-        if (widget.role == "Teacher") {
-          await ApiService.loginFaculty(id);
-          await ApiService.clearStudentSession();
-          ApiService.clearAdminSession();
-          await context.read<CartProvider>().switchSession('faculty:$id');
-        } else {
-          await ApiService.clearStudentSession();
-          await ApiService.clearFacultySession();
-          await context.read<CartProvider>().switchSession('kitchen:$id');
+      } else if (widget.role == "Teacher") {
+        final result = await ApiService.loginFaculty(id, password);
+        if (result['success'] != true) {
+          throw Exception('Invalid Teacher credentials');
         }
+        if (!mounted) return;
+        await context.read<CartProvider>().switchSession(
+          'faculty:${ApiService.facultyId ?? id}',
+          useBackend: true,
+        );
       }
       setState(() {
         isLoading = false;
@@ -510,51 +505,40 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
 
               // =================================================
-              // DEMO ACCOUNT INFORMATION
+              // AUTHORIZED LOGIN INFORMATION
               // =================================================
-              Container(
-                width: double.infinity,
-
-                padding: const EdgeInsets.all(16),
-
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-
-                  border: Border.all(color: Colors.grey.shade200),
+              if (widget.role != "Student")
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.shield_outlined, color: roleColor, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.role == "Teacher"
+                                ? "Faculty Login"
+                                : "Staff Login",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Use your authorized CampusEATS credentials.",
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                      ),
+                    ],
+                  ),
                 ),
-
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline, color: roleColor, size: 20),
-
-                        const SizedBox(width: 8),
-
-                        const Text(
-                          "Demo Login (Use one of the cafeteria admin emails below)",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    const Text(
-                      "ID: bengaluru@campuseats.com / pesu@campuseats.com / nonveg@campuseats.com",
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    const Text(
-                      "Password: 1234",
-                      style: TextStyle(color: Colors.grey, fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
 
               const SizedBox(height: 25),
 
@@ -572,32 +556,32 @@ class _LoginScreenState extends State<LoginScreen> {
   String _getIdHint() {
     switch (widget.role) {
       case "Teacher":
-        return "Example: faculty";
+        return "Example: FAC001";
 
       case "Kitchen Staff":
         return "Example: kitchen";
 
       case "Admin":
-        return "Example: bengaluru@campuseats.com";
+        return "Example: admin.bengalurucafe";
 
       default:
-        return "Example: PES1UG24CA017";
+        return "Example: PES1UG24CA003";
     }
   }
 
   String _getDemoId() {
     switch (widget.role) {
       case "Teacher":
-        return "teacher";
+        return "FAC001";
 
       case "Kitchen Staff":
         return "kitchen";
 
       case "Admin":
-        return "bengaluru@campuseats.com";
+        return "admin.bengalurucafe";
 
       default:
-        return "student";
+        return "PES1UG24CA003";
     }
   }
 }

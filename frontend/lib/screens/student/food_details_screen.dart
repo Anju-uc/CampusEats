@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/cart_item.dart';
 import '../../providers/cart_provider.dart';
+import '../../widgets/cart_switch_dialog.dart';
 import 'cart_screen.dart';
 
 class FoodDetailsScreen extends StatefulWidget {
@@ -82,7 +83,7 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
   // ADD TO CART
   // ============================================================
 
-  void addToCart() {
+  Future<bool> addToCart() async {
     final cartProvider = context.read<CartProvider>();
 
     // ----------------------------------------------------------
@@ -99,35 +100,24 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
       image: '',
     );
 
-    // ----------------------------------------------------------
-    // ADD ITEM
-    //
-    // IMPORTANT:
-    // CartProvider.addItem() returns VOID.
-    //
-    // So DO NOT do:
-    //
-    // final success = cartProvider.addItem(item);
-    //
-    // and DO NOT do:
-    //
-    // if (!success)
-    //
-    // ----------------------------------------------------------
-
-    final added = cartProvider.addItem(item);
-
-    if (!added) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Your cart contains items from ${cartProvider.items.first.cafeteria}. Please checkout first or clear your cart before ordering from another cafeteria.',
-          ),
-          backgroundColor: Colors.red,
-        ),
+    if (cartProvider.hasDifferentCafeteria(widget.cafeteria)) {
+      final currentCafeteria =
+          cartProvider.currentCafeteria ?? 'another cafeteria';
+      final shouldSwitch = await showCartCafeteriaSwitchDialog(
+        context,
+        currentCafeteria: currentCafeteria,
       );
-      return;
+
+      if (!shouldSwitch || !mounted) {
+        return false;
+      }
+
+      cartProvider.clearAndAddItem(item);
+    } else {
+      cartProvider.addItem(item);
     }
+
+    if (!mounted) return true;
 
     // ----------------------------------------------------------
     // SHOW SUCCESS MESSAGE
@@ -152,6 +142,8 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
         ),
       ),
     );
+
+    return true;
   }
 
   // ============================================================
@@ -528,9 +520,11 @@ class _FoodDetailsScreenState extends State<FoodDetailsScreen> {
                     width: double.infinity,
                     height: 55,
                     child: OutlinedButton(
-                      onPressed: () {
-                        addToCart();
-                        openCart();
+                      onPressed: () async {
+                        final added = await addToCart();
+                        if (added && mounted) {
+                          openCart();
+                        }
                       },
 
                       style: OutlinedButton.styleFrom(

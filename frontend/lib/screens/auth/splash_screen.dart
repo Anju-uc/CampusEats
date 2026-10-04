@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:provider/provider.dart';
+
 import 'role_selection_screen.dart';
+import '../../services/api_service.dart';
+import '../../providers/cart_provider.dart';
+import '../student/home_screen.dart';
+import '../kitchen/admin_dashboard.dart';
+import '../kitchen/kitchen_dashboard.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,14 +22,83 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 3), () async {
+      if (!mounted) return;
+      await _tryRestoreSession();
+    });
+  }
+
+  /// Attempts to restore a persisted session after app start or browser refresh.
+  /// On success routes directly to the correct dashboard; otherwise falls back
+  /// to RoleSelectionScreen.
+  Future<void> _tryRestoreSession() async {
+    try {
+      final storedRole = await ApiService.getStoredActiveRole();
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
-      );
-    });
+      if (storedRole == 'student') {
+        final ok = await ApiService.restoreStudentSession();
+        if (ok && mounted) {
+          final userKey =
+              'student:${ApiService.studentUid ?? ApiService.studentId}';
+          await context.read<CartProvider>().switchSession(
+            userKey,
+            useBackend: true,
+          );
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const HomeScreen(role: 'Student'),
+            ),
+          );
+          return;
+        }
+      } else if (storedRole == 'teacher') {
+        final ok = await ApiService.restoreFacultySession();
+        if (ok && mounted) {
+          final userKey = 'faculty:${ApiService.facultyId}';
+          await context.read<CartProvider>().switchSession(
+            userKey,
+            useBackend: true,
+          );
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const HomeScreen(role: 'Teacher'),
+            ),
+          );
+          return;
+        }
+      } else if (storedRole == 'admin') {
+        final ok = await ApiService.restoreAdminSession();
+        if (ok && mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminDashboard()),
+          );
+          return;
+        }
+      } else if (storedRole == 'kitchen') {
+        final ok = await ApiService.restoreKitchenSession();
+        if (ok && mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const KitchenDashboard()),
+          );
+          return;
+        }
+      }
+    } catch (_) {
+      // Ignore any restoration errors — fall through to role selection.
+    }
+
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
+    );
   }
 
   @override
