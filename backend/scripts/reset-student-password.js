@@ -14,27 +14,22 @@ async function findStudentUser(identifier) {
     const email = getInternalFirebaseEmail(identifier);
     try {
       return await auth.getUserByEmail(email);
-    } catch (_) {}
+    } catch (_) { }
   }
 
   // Try direct email
   if (identifier && identifier.includes("@")) {
     try {
       return await auth.getUserByEmail(identifier);
-    } catch (_) {}
+    } catch (_) { }
   }
 
   // Try direct UID
   if (identifier) {
     try {
       return await auth.getUser(identifier);
-    } catch (_) {}
+    } catch (_) { }
   }
-
-  // Default to known student UID verified in Step 1
-  try {
-    return await auth.getUser("OUnQ98ld1be4MuNqkgd9JNsXCLh2");
-  } catch (_) {}
 
   // Or search users list for active student
   const list = await auth.listUsers(10);
